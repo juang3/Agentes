@@ -5,6 +5,9 @@
  */
 package neurakitt;
 
+import es.upv.dsic.gti_ia.core.AgentID;
+import es.upv.dsic.gti_ia.core.AgentsConnection;
+
 /**
  *
  * @author Alvaro
@@ -12,10 +15,16 @@ package neurakitt;
 public class NeuraKitt {
 
     /**
+     * @author Alvaro
      * @param args the command line arguments
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         // TODO code application logic here
+        AgentsConnection.connect("Girtab", 5672, "Girtab", "Geminis", "France", false);
+        Agente neura = new Agente(new AgentID("neura"));
+        Agente kitt = new Agente(new AgentID("kitt"));
+        neura.start();
+        kitt.start();
     }
     
 }
