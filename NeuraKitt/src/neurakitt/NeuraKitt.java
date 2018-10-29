@@ -7,6 +7,8 @@ package neurakitt;
 
 import es.upv.dsic.gti_ia.core.AgentID;
 import es.upv.dsic.gti_ia.core.AgentsConnection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -15,16 +17,31 @@ import es.upv.dsic.gti_ia.core.AgentsConnection;
 public class NeuraKitt {
 
     /**
-     * @author Alvaro
+     * @author Alvaro, Juan Germán, 
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws Exception {
-        // TODO code application logic here
-        AgentsConnection.connect("Girtab", 5672, "Girtab", "Geminis", "France", false);
-        Agente neura = new Agente(new AgentID("neura"));
-        Agente kitt = new Agente(new AgentID("kitt"));
-        neura.start();
-        kitt.start();
+    public static void main(String[] args) {
+        try {
+            // TODO code application logic here
+            
+            System.out.println("Creando conexión");
+            AgentsConnection.connect("isg2.ugr.es", 6000, "Girtab", "Geminis", "France", false);
+            System.out.println("Conxión creada");
+            
+            Agente neura = new Agente(new AgentID("neura11"));
+            System.out.println("\nAgente neura creado");
+            
+            Agente kitt = new Agente(new AgentID("kitt11"));
+            System.out.println("Agente kitt creado");
+            
+            System.out.println("Despertando a los agentes Kitt y Neura");
+            neura.start();
+            kitt.start();
+            System.out.println("Agentes en pie");
+        } catch (Exception ex) {
+            System.out.println("FALLA AQUI");
+            Logger.getLogger(NeuraKitt.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
 }

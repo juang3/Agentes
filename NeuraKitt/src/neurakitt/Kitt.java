@@ -11,6 +11,7 @@ import com.eclipsesource.json.JsonObject;
 import com.eclipsesource.json.JsonValue;
 import es.upv.dsic.gti_ia.core.ACLMessage;
 import es.upv.dsic.gti_ia.core.AgentID;
+import es.upv.dsic.gti_ia.core.SingleAgent;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,6 +38,7 @@ public class Kitt extends Agente {
      * @author Alvaro
      */
     public void execute() {
+        System.out.println("Hola, soy Kitt");
         
         /* Enviamos mensaje de login al servidor */
         
@@ -50,8 +52,9 @@ public class Kitt extends Agente {
         JsonObject mensaje = new JsonObject(); 
         mensaje.add("command", "login");
         mensaje.add("world", "map1");
-        mensaje.add("radar", "neura");
         mensaje.add("battery", "kitt");
+        mensaje.add("radar", "neura");
+        mensaje.add("scanner", "neura");
         mensaje.add("gps", "neura");        
         outbox.setContent(mensaje.asString());
         
@@ -62,6 +65,7 @@ public class Kitt extends Agente {
         ACLMessage respuesta = null;
         try {
             respuesta = this.receiveACLMessage();
+            System.out.println("Respuesta: "+ respuesta.getContent());
         } catch (InterruptedException ex) {
             System.err.println("Error al recibir la respuesta");
             Logger.getLogger(Kitt.class.getName()).log(Level.SEVERE, null, ex);
@@ -72,7 +76,8 @@ public class Kitt extends Agente {
         /* Si nos hemos logeado correctamente, guardamos la clave, recibimos del servidor la batería y determinamos la acción a llevar a cabo*/
         
         if ( !mensaje.get("result").asString().equals("BAD_MAP") && !mensaje.get("result").asString().equals("BAD_PROTOCOL") ) {
-            String clave = mensaje.get("result").asString();    
+            String clave = mensaje.get("result").asString();
+            System.out.println("ok");
             
             /* Escuchamos al servidor para recibir la batería */
             
@@ -195,6 +200,8 @@ public class Kitt extends Agente {
             }
             
           
+        }else{
+            System.out.println("MAL");
         }
            
         

@@ -27,7 +27,7 @@ public class Neura extends Agente {
      * @author Alvaro
      */
     public void execute(){
-        
+        System.out.println("Hola, soy Neura");
     }
     
 }
