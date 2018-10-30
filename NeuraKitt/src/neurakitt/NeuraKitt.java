@@ -28,10 +28,10 @@ public class NeuraKitt {
             AgentsConnection.connect("isg2.ugr.es", 6000, "Girtab", "Geminis", "France", false);
             System.out.println("Conxión creada");
             
-            Agente neura = new Agente(new AgentID("neura11"));
+            Neura neura = new Neura(new AgentID("neura"));
             System.out.println("\nAgente neura creado");
             
-            Agente kitt = new Agente(new AgentID("kitt11"));
+            Kitt kitt = new Kitt(new AgentID("kitt"));
             System.out.println("Agente kitt creado");
             
             System.out.println("Despertando a los agentes Kitt y Neura");

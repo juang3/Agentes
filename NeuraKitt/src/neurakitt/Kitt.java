@@ -44,7 +44,7 @@ public class Kitt extends Agente {
         
         ACLMessage outbox = new ACLMessage(); // mensaje a enviar
         outbox.setSender(this.getAid()); // establecemos emisor
-        AgentID idServidor = new AgentID("Geminis"); // el agente del servidor es Geminis o Girtab?
+        AgentID idServidor = new AgentID("Girtab"); // el agente del servidor es Geminis o Girtab?
         outbox.setReceiver(idServidor); // establecemos destinatario
         
         /* Creamos el mensaje */
@@ -56,7 +56,7 @@ public class Kitt extends Agente {
         mensaje.add("radar", "neura");
         mensaje.add("scanner", "neura");
         mensaje.add("gps", "neura");        
-        outbox.setContent(mensaje.asString());
+        outbox.setContent(mensaje.toString());
         
         this.send(outbox); // lo enviamos
         
@@ -72,7 +72,8 @@ public class Kitt extends Agente {
         }
         
         mensaje = Json.parse(respuesta.getContent()).asObject();
-        
+        System.out.println("respuesta = " + mensaje.get("trace").asString());
+        System.out.println("aqui");
         /* Si nos hemos logeado correctamente, guardamos la clave, recibimos del servidor la batería y determinamos la acción a llevar a cabo*/
         
         if ( !mensaje.get("result").asString().equals("BAD_MAP") && !mensaje.get("result").asString().equals("BAD_PROTOCOL") ) {
