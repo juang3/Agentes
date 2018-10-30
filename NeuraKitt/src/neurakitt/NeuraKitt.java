@@ -22,16 +22,20 @@ public class NeuraKitt {
      */
     public static void main(String[] args) {
         try {
-            // TODO code application logic here
+            // Identificadores de los agentes
+            AgentID idKitt  = new AgentID("kitt");
+            AgentID idNeura = new AgentID("neura");
             
+            // Creando conexión con el servidor
             System.out.println("Creando conexión");
             AgentsConnection.connect("isg2.ugr.es", 6000, "Girtab", "Geminis", "France", false);
             System.out.println("Conxión creada");
             
-            Neura neura = new Neura(new AgentID("neura"));
+            
+            Neura neura = new Neura(idNeura, idKitt);
             System.out.println("\nAgente neura creado");
             
-            Kitt kitt = new Kitt(new AgentID("kitt"));
+            Kitt kitt = new Kitt(idKitt);
             System.out.println("Agente kitt creado");
             
             System.out.println("Despertando a los agentes Kitt y Neura");

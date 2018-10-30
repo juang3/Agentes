@@ -37,8 +37,9 @@ public class TestNeura {
      * Contiene la información del scanner y del radar,
      * reducida a los 8 movimientos.
      */
-    float radanner[] = new float[10];
     int TAMANIORADANNER = 9;
+    float radanner[] = new float[TAMANIORADANNER];
+    
     
     /**
     * Constructor, rellena los sensores para realizar test de los métodos.
@@ -47,10 +48,14 @@ public class TestNeura {
    public TestNeura(){
        for(int i=0; i< TAMANIOENTORNO; i++){
            scanner[i] = (float) Math.random()*70;
-           radar[i] = (int) Math.floor(Math.random()*3);
+           radar[i] = (int) Math.floor(Math.random()*2);
        }
        gps[0]=25;
        gps[1]=125;
+       
+       radar[8]=0;
+       radar[9]=2;
+       scanner[8]=(float) 0.4;
             
    }
    
@@ -166,9 +171,14 @@ public class TestNeura {
    int Decision(){
        float minimo;
        minimo = Float.POSITIVE_INFINITY;
-       int posicion = 0;
+       int posicion = -1;
        
-       if(radanner[4]<0)
+    /**
+     *  Miro primeramente la posición 4 que es donde está Kitt,
+     * para averiguar si estoy en destino.
+     * En otro caso recorro el radanner.
+     */   
+       if(radanner[4]<0)        
            return 4;            // Kitt está en el destino
        else{                    // Kitt no está en destino
            for(int i=0; i< TAMANIORADANNER; i++){

@@ -18,7 +18,7 @@ public class Neura extends Agente {
      * @param aid
      * @throws Exception 
      */
-    public Neura(AgentID aid) throws Exception {
+    public Neura(AgentID aid, AgentID idKitt) throws Exception {
         super(aid);
     }
     
