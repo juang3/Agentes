@@ -48,21 +48,22 @@ public class Agente extends SingleAgent {
         
     }
     
-    void ReciboYDecodificoMensaje(ACLMessage mensaje_respuesta){
+    boolean ReciboYDecodificoMensaje(){
         try{
             mensaje_respuesta = this.receiveACLMessage();
-            
         }
         catch(InterruptedException ex){
-            System.err.println("Error en la recepción del mensaje. ");
-//            Logger.getLogger(Kitt.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println(this.getName() + " Error en la recepción del mensaje. ");
+            return false;
+
         }
         
         mensaje = Json.parse(mensaje_respuesta.getContent()).asObject();
+        return true;
     }
     
     // Evita que el agente realice constantemente la codificación de los mensajes.
-    void CoficicarYEnvioMensaje(JsonObject mensaje, AgentID destinatario){
+    void CoficicoYEnvioMensaje(AgentID destinatario){
         mensaje_salida = new ACLMessage();          // Limpia
         mensaje_salida.setSender(this.getAid());    // Emisor
         mensaje_salida.setReceiver(destinatario);   // Receptor
