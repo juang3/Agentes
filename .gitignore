@@ -3,4 +3,4 @@
 
 # Ignorar directorio privado del proyecto de Netbeans para evitar incongruencias
 # en el classpath de cada usuario.
-/nbproject/*
+/nbproject/private/*
