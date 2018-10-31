@@ -180,4 +180,51 @@ public class Neura extends Agente {
            System.out.println("i= "+i+" "+radanner[i]+" ");
        }
    }
+   
+   /**
+    * Neura decide el elemento más prometedor de las proximidades de Kitt.
+    * @author:  Germán  
+    * @return Devuelve la posición del elemento más prometedor.
+    * @version: 1.1
+    * @note:    Creo que es más importante la posición donde se encuentra
+    *  el elemento más prometedor que la información que contiene.
+    */
+   int Decision(){
+       float minimo;
+       minimo = Float.POSITIVE_INFINITY;
+       int posicion = -1;
+       
+    /**
+     *  Miro primeramente la posición 4 que es donde está Kitt,
+     * para averiguar si estoy en destino.
+     * En otro caso recorro el radanner.
+     */   
+       if(radanner[4]<0)        
+           return 4;            // Kitt está en el destino
+       else{                    // Kitt no está en destino
+           for(int i=0; i< TAMANIORADANNER; i++){
+               if(radanner[i]<0)
+                   return i;    
+               
+               else if(radanner[i]<minimo && radanner[i] != 0.0){
+                   minimo = radanner[i];
+                   posicion = i;
+               }
+           }
+       }
+       return posicion;
+   }
+   
+   /**
+    * Neura indica la acción más prometedora. 
+    * @author:  Juan Germán Gómez Gómez
+    * @return Devuelve el movimiento a realizar 
+    * @note:    De momento Neura no tiene memoria, de tenerla debería ordenar 
+    * los movimientos más prometedores para poder cotejarlos con los realizados.
+    * 
+    */
+   public  String Accion(){
+       int decision = Decision();
+       return movimientos[decision];
+   }
 }
