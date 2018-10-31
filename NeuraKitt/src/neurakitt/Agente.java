@@ -5,10 +5,14 @@
  */
 package neurakitt;
 
+import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonObject;
 import es.upv.dsic.gti_ia.core.ACLMessage;
 import es.upv.dsic.gti_ia.core.AgentID;
 import es.upv.dsic.gti_ia.core.SingleAgent;
+import java.util.logging.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Priority;
 
 /**
  *
@@ -44,8 +48,26 @@ public class Agente extends SingleAgent {
         
     }
     
-    void DecodificarMensaje(JsonObject sensor){
+    void ReciboYDecodificoMensaje(ACLMessage mensaje_respuesta){
+        try{
+            mensaje_respuesta = this.receiveACLMessage();
+            
+        }
+        catch(InterruptedException ex){
+            System.err.println("Error en la recepción del mensaje. ");
+//            Logger.getLogger(Kitt.class.getName()).log(Level.SEVERE, null, ex);
+        }
         
+        mensaje = Json.parse(mensaje_respuesta.getContent()).asObject();
+    }
+    
+    // Evita que el agente realice constantemente la codificación de los mensajes.
+    void CoficicarYEnvioMensaje(JsonObject mensaje, AgentID destinatario){
+        mensaje_salida = new ACLMessage();          // Limpia
+        mensaje_salida.setSender(this.getAid());    // Emisor
+        mensaje_salida.setReceiver(destinatario);   // Receptor
+        mensaje_salida.setContent(mensaje.toString()); // Contenido del mensaje
+        this.send(mensaje_salida);                  // Enviando el mensaje.
     }
     
 }
