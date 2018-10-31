@@ -5,15 +5,27 @@
  */
 package neurakitt;
 
+import com.eclipsesource.json.Json;
+import com.eclipsesource.json.JsonObject;
 import es.upv.dsic.gti_ia.core.ACLMessage;
 import es.upv.dsic.gti_ia.core.AgentID;
 import es.upv.dsic.gti_ia.core.SingleAgent;
+import java.util.logging.Level;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Priority;
 
 /**
  *
  * @author Alvaro
  */
 public class Agente extends SingleAgent {
+    //Evita creación de objetos Json durante la ejecución del agente 
+    protected JsonObject mensaje;
+    
+    //Evita crear ACLMessage durante la ejecución del agente, reutiliza objeto. 
+    protected ACLMessage mensaje_respuesta;
+    protected ACLMessage mensaje_salida;
+    
     
     /**
      * 
@@ -34,6 +46,40 @@ public class Agente extends SingleAgent {
         
         
         
+    }
+    
+    /**
+     * @author: Germán, Alvaro
+     * @return Devuelve éxito o no si se ha realizado corectamente 
+     */
+   protected boolean ReciboYDecodificoMensaje(){
+        try{
+            mensaje_respuesta = this.receiveACLMessage();
+        }
+        catch(InterruptedException ex){
+            System.err.println(this.getName() + " Error en la recepción del mensaje. ");
+            return false;
+
+        }
+        
+        mensaje = Json.parse(mensaje_respuesta.getContent()).asObject();
+        return true;
+    }
+    
+    /**
+     * Deja la rutina de la codificación 
+     * @author: Germán, Alvaro
+     * @param destinatario 
+     */
+    // Evita que el agente realice constantemente la codificación de los mensajes.
+    protected boolean CoficicoYEnvioMensaje(AgentID destinatario){
+        mensaje_salida = new ACLMessage();          // Limpia
+        mensaje_salida.setSender(this.getAid());    // Emisor
+        mensaje_salida.setReceiver(destinatario);   // Receptor
+        mensaje_salida.setContent(mensaje.toString()); // Contenido del mensaje
+        this.send(mensaje_salida);                  // Enviando el mensaje.
+        
+        return true;
     }
     
 }

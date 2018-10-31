@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 /**
  *
- * @author juan
+ * @author Germán
  */
 public class TestNeura {
     // Entorno que percibe, cuadrado de 5x5
@@ -23,7 +23,7 @@ public class TestNeura {
     int tamanioRadar = TAMANIOENTORNO;
    
 // Destinados a memoria    
-    int gps[]          = new int[2];     // Tamanio fijo (x,y)
+    int gps[]          = new int[3];     // Tamanio fijo (x,y, i)
     ArrayList caminado = new ArrayList();// Tamanio variable// Tamanio variable
     
 // Movimientos posibles.
@@ -43,24 +43,24 @@ public class TestNeura {
     
     /**
     * Constructor, rellena los sensores para realizar test de los métodos.
-    * @author:  Juan Germán Gómez Gómez
+    * @author:  Germán
     */
    public TestNeura(){
        for(int i=0; i< TAMANIOENTORNO; i++){
            scanner[i] = (float) Math.random()*70;
-           radar[i] = (int) Math.floor(Math.random()*2);
+           radar[i] = (int) Math.floor(Math.random()*3);
        }
        gps[0]=25;
        gps[1]=125;
        
-       radar[8]=0;
-       radar[9]=2;
-       scanner[8]=(float) 0.4;
+       //radar[8]=0;
+       //radar[9]=2;
+       //scanner[8]=(float) 0.4;
             
    }
    
    /**
-     * @author: Juan Germán Gómez Gómez 
+     * @author: Germán
      * Reflexión.
      * Previos:
      *  El radar representa la información del entorno con 0,1,2 (libre, obstáculo, destino)
@@ -114,7 +114,7 @@ public class TestNeura {
      
    /**
     * Asigna a cada posición el contenido procesado del Radar y del Scanner.
-    * @author:  Juan Germán Gómez Gómez
+    * @author:  Germán
     * @note: Reflexión
     *   Los movimientos son: N, S, E, W, NE, NW, SE, SW
     *   Que corresponden diretamente con las celdas adyacentes a Kitt:
@@ -138,7 +138,7 @@ public class TestNeura {
    
    /**
     * Muestra el contenido de cada sensor
-    * @author:  Juan Germán Gómez Gómez
+    * @author:  Germán
     * @note:    Útil para apreciar los cambios que se realizan
     */
    public void PrintSensores(){
@@ -162,7 +162,7 @@ public class TestNeura {
    
    /**
     * Neura decide el elemento más prometedor de las proximidades de Kitt.
-    * @author:  Juan Germán Gómez Gómez.  
+    * @author:  Germán  
     * @return Devuelve la posición del elemento más prometedor.
     * @version: 1.1
     * @note:    Creo que es más importante la posición donde se encuentra
