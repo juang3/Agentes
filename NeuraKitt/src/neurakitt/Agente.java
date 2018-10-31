@@ -48,7 +48,11 @@ public class Agente extends SingleAgent {
         
     }
     
-    boolean ReciboYDecodificoMensaje(){
+    /**
+     * @author: Germán, Alvaro
+     * @return Devuelve éxito o no si se ha realizado corectamente 
+     */
+   protected boolean ReciboYDecodificoMensaje(){
         try{
             mensaje_respuesta = this.receiveACLMessage();
         }
@@ -62,13 +66,20 @@ public class Agente extends SingleAgent {
         return true;
     }
     
+    /**
+     * Deja la rutina de la codificación 
+     * @author: Germán, Alvaro
+     * @param destinatario 
+     */
     // Evita que el agente realice constantemente la codificación de los mensajes.
-    void CoficicoYEnvioMensaje(AgentID destinatario){
+    protected boolean CoficicoYEnvioMensaje(AgentID destinatario){
         mensaje_salida = new ACLMessage();          // Limpia
         mensaje_salida.setSender(this.getAid());    // Emisor
         mensaje_salida.setReceiver(destinatario);   // Receptor
         mensaje_salida.setContent(mensaje.toString()); // Contenido del mensaje
         this.send(mensaje_salida);                  // Enviando el mensaje.
+        
+        return true;
     }
     
 }
