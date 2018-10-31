@@ -39,6 +39,14 @@ public class Neura extends Agente {
     };
     
     /**
+     * Contiene la información del scanner y del radar,
+     * reducida a los 8 movimientos.
+     */
+    int TAMANIORADANNER = 9;
+    float radanner[] = new float[TAMANIORADANNER];
+    
+    
+    /**
      * @author Alvaro, Germán
      * @param aid       identificador de Neura
      * @param idKitt    identificador de receptor de los mensajes de Neura
@@ -123,5 +131,29 @@ public class Neura extends Agente {
            else
                scanner[i]=traslacion*scanner[i];
        } 
-   }    
+   }
+   
+   /**
+    * Asigna a cada posición el contenido procesado del Radar y del Scanner.
+    * @author:  Germán
+    * @note: Reflexión
+    *   Los movimientos son: N, S, E, W, NE, NW, SE, SW
+    *   Que corresponden diretamente con las celdas adyacentes a Kitt:
+    *   6 --> NW        7 --> N         8 --> NE
+    *   11--> W         12--> Kitt      13--> E
+    *   16--> SW        17--> S         18--> SE
+    */
+   public void Radanner(){
+       ProcesarRadarYScanner();
+       
+       radanner[0] = scanner[6];
+       radanner[1] = scanner[7];
+       radanner[2] = scanner[8];
+       radanner[3] = scanner[11];
+       radanner[4] = scanner[12];
+       radanner[5] = scanner[13];
+       radanner[6] = scanner[16];
+       radanner[7] = scanner[17];
+       radanner[8] = scanner[18];
+   }
 }
