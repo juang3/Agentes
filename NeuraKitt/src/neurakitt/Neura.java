@@ -156,4 +156,28 @@ public class Neura extends Agente {
        radanner[7] = scanner[17];
        radanner[8] = scanner[18];
    }
+   
+   /**
+    * Muestra el contenido de cada sensor
+    * @author:  Germán
+    * @note:    Útil para apreciar los cambios que se realizan
+    */
+   public void PrintSensores(){
+       System.out.print("\n Radar: ");
+       for(int i=0; i<TAMANIOENTORNO; i++){
+           System.out.print(radar[i]+" ");
+       }
+       
+       System.out.print("\n Scanner: ");
+       for(int i=0; i<TAMANIOENTORNO; i++){
+           System.out.print(scanner[i]+" ");
+       }
+       
+       System.out.print("\n GPS: x="+ gps[0] + ", y="+ gps[1]);
+       
+       System.out.println("\n Radanner: ");
+       for(int i=0; i<9; i++){
+           System.out.println("i= "+i+" "+radanner[i]+" ");
+       }
+   }
 }
