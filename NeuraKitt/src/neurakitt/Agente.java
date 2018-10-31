@@ -72,7 +72,7 @@ public class Agente extends SingleAgent {
      * @param destinatario 
      */
     // Evita que el agente realice constantemente la codificación de los mensajes.
-    protected boolean CoficicoYEnvioMensaje(AgentID destinatario){
+    protected boolean CodificoYEnvioMensaje(AgentID destinatario){
         mensaje_salida = new ACLMessage();          // Limpia
         mensaje_salida.setSender(this.getAid());    // Emisor
         mensaje_salida.setReceiver(destinatario);   // Receptor
