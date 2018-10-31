@@ -5,6 +5,7 @@
  */
 package neurakitt;
 
+import com.eclipsesource.json.JsonObject;
 import es.upv.dsic.gti_ia.core.ACLMessage;
 import es.upv.dsic.gti_ia.core.AgentID;
 import es.upv.dsic.gti_ia.core.SingleAgent;
@@ -14,6 +15,13 @@ import es.upv.dsic.gti_ia.core.SingleAgent;
  * @author Alvaro
  */
 public class Agente extends SingleAgent {
+    //Evita creación de objetos Json durante la ejecución del agente 
+    protected JsonObject mensaje;
+    
+    //Evita crear ACLMessage durante la ejecución del agente, reutiliza objeto. 
+    protected ACLMessage mensaje_respuesta;
+    protected ACLMessage mensaje_salida;
+    
     
     /**
      * 
@@ -33,6 +41,10 @@ public class Agente extends SingleAgent {
         
         
         
+        
+    }
+    
+    void DecodificarMensaje(JsonObject sensor){
         
     }
     
