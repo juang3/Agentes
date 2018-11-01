@@ -5,6 +5,7 @@
  */
 package neurakitt;
 
+import com.eclipsesource.json.JsonArray;
 import es.upv.dsic.gti_ia.core.AgentID;
 import java.util.ArrayList;
 
@@ -26,6 +27,8 @@ public class Neura extends Agente {
    
     int radar[]      = new int[TAMANIOENTORNO];      // Tamanio fijo
     int tamanioRadar = TAMANIOENTORNO;
+    
+
    
     // Destinados a memoria    
     int gps[]          = new int[3];     // Tamanio fijo (x,y, veces que ha pasado)
@@ -45,6 +48,9 @@ public class Neura extends Agente {
     int TAMANIORADANNER = 9;
     float radanner[] = new float[TAMANIORADANNER];
     
+    // Array necesario para actualizar los sensores.
+    JsonArray entorno = new JsonArray();
+    JsonArray coordenadas = new JsonArray();
     
     /**
      * @author Alvaro, Germán
@@ -54,7 +60,8 @@ public class Neura extends Agente {
      */
     public Neura(AgentID aid, AgentID idKitt) throws Exception {
         super(aid);
-        
+       
+        System.out.println("Inicializando atributos ");
        for(int i=0; i< TAMANIOENTORNO; i++){
         //   scanner[i] = (float) Math.random()*70;
            scanner[i] = 0;
@@ -66,6 +73,10 @@ public class Neura extends Agente {
        gps[1]=-1;
        gps[2]= 0;
        
+       for(int i=0; i< TAMANIORADANNER; i++)
+           radanner[i] = Float.POSITIVE_INFINITY;
+
+        System.out.println("Fin de la construcción de Neura ");
     }
     
     @Override
@@ -226,5 +237,33 @@ public class Neura extends Agente {
    public  String Accion(){
        int decision = Decision();
        return movimientos[decision];
+   }
+   
+   private void ActualizacionDeSentidos(){
+       
+       // Ver el contenido de los sensores antes de iniciar la actualización
+       PrintSensores();
+       
+
+       ReciboYDecodificoMensaje();
+       entorno = mensaje.get("scanner").asArray();
+       for(int i=0; i<entorno.size(); i++){
+           scanner[i] = entorno.get(i).asFloat();
+       }
+       
+       ReciboYDecodificoMensaje();
+       coordenadas = mensaje.get("gps").asArray();
+       gps[0] = coordenadas.get(0).asInt();
+       gps[1] = coordenadas.get(1).asInt();
+       gps[2] += 1;
+       
+       ReciboYDecodificoMensaje();
+       entorno = mensaje.get("radar").asArray();
+       for(int i=0; i<entorno.size(); i++){
+           radar[i] = entorno.get(i).asInt();
+       }
+       
+       // Ver el contenido de los sensores despues de la actualización
+       PrintSensores();
    }
 }
