@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package neurakitt;
 
 import com.eclipsesource.json.Json;
@@ -10,9 +5,6 @@ import com.eclipsesource.json.JsonObject;
 import es.upv.dsic.gti_ia.core.ACLMessage;
 import es.upv.dsic.gti_ia.core.AgentID;
 import es.upv.dsic.gti_ia.core.SingleAgent;
-import java.util.logging.Level;
-import org.apache.log4j.Logger;
-import org.apache.log4j.Priority;
 
 /**
  *
@@ -51,15 +43,19 @@ public class Agente extends SingleAgent {
     /**
      * @author: Germán, Alvaro
      * @return Devuelve éxito o no si se ha realizado corectamente 
+     * 
+     * @author Alejandor
+     * @FechaModificacion 01/11/2018
+     * @Motivo Las funciones y métodos deben ser siempre verbos. Cambio 
+     * ReciboYDecodificoMensaje() por recibirMensaje()
      */
-   protected boolean ReciboYDecodificoMensaje(){
+    protected boolean recibirMensaje(){
         try{
             mensaje_respuesta = this.receiveACLMessage();
         }
         catch(InterruptedException ex){
             System.err.println(this.getName() + " Error en la recepción del mensaje. ");
             return false;
-
         }
         
         mensaje = Json.parse(mensaje_respuesta.getContent()).asObject();
@@ -67,19 +63,23 @@ public class Agente extends SingleAgent {
     }
     
     /**
-     * Deja la rutina de la codificación 
+     * Crea un mensaje y se lo envía al destinatario que recibe como parámetro
+     * 
      * @author: Germán, Alvaro
      * @param destinatario 
+     * 
+     * @author Alejandor
+     * @FechaModificacion 01/11/2018
+     * @Motivo Las funciones y métodos deben ser siempre verbos. Cambio 
+     * DecodificoYEnvioMensaje() por enviarMensaje(). Cambiado valor de retorno 
+     * a void
      */
-    // Evita que el agente realice constantemente la codificación de los mensajes.
-    protected boolean CodificoYEnvioMensaje(AgentID destinatario){
-        mensaje_salida = new ACLMessage();          // Limpia
-        mensaje_salida.setSender(this.getAid());    // Emisor
-        mensaje_salida.setReceiver(destinatario);   // Receptor
-        mensaje_salida.setContent(mensaje.toString()); // Contenido del mensaje
-        this.send(mensaje_salida);                  // Enviando el mensaje.
-        
-        return true;
+    protected void enviarMensaje(AgentID destinatario){
+        mensaje_salida = new ACLMessage();              // Limpia
+        mensaje_salida.setSender(this.getAid());        // Emisor (objeto que invoca)
+        mensaje_salida.setReceiver(destinatario);       // Receptor (obejto dado como parámetro)
+        mensaje_salida.setContent(mensaje.toString());  // Contenido del mensaje
+        this.send(mensaje_salida);                      // Enviando el mensaje.
     }
     
     /**
