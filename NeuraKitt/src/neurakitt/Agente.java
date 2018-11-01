@@ -82,4 +82,22 @@ public class Agente extends SingleAgent {
         return true;
     }
     
+    /**
+     * 
+     * @return Devuelve true si se ha ignorado corretamente el mensaje.
+     */
+    protected boolean IgnoroMensaje() {
+        try {
+            mensaje_respuesta = this.receiveACLMessage();
+            System.out.println("Mensaje ignorado: "+ mensaje_respuesta.toString());
+            return true;    
+        } 
+        catch (InterruptedException ex) {
+            System.err.println(this.getName() + " Error en la recepción del mensaje. ");
+            System.out.println("No se ha podido ignorar el mensaje: "+ mensaje_respuesta.toString());
+            return false;
+        }
+        
+    }
+    
 }
