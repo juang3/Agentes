@@ -77,7 +77,7 @@ public class Kitt extends Agente {
                 /* Si no me queda batería hago refuel */
                 
                 if (bateria == 0) {
-                   
+               
                     /* Le enviamos al servidor el mensaje refuel */
                     /* Creamos el mensaje */
 
