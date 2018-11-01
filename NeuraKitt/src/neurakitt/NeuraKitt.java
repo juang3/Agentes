@@ -23,8 +23,8 @@ public class NeuraKitt {
     public static void main(String[] args) {
         try {
             // Identificadores de los agentes
-            AgentID idKitt  = new AgentID("kitt");
-            AgentID idNeura = new AgentID("neura");
+            AgentID idKitt  = new AgentID("kitt2");
+            AgentID idNeura = new AgentID("neura2");
             
             // Creando conexión con el servidor
             System.out.println("Creando conexión");
@@ -42,6 +42,7 @@ public class NeuraKitt {
             neura.start();
             kitt.start();
             System.out.println("Agentes en pie");
+            
         } catch (Exception ex) {
             System.out.println("FALLA AQUI");
             Logger.getLogger(NeuraKitt.class.getName()).log(Level.SEVERE, null, ex);
