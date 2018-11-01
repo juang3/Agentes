@@ -81,7 +81,7 @@ public class TestKitt extends Agente {
 
                 /* Si no me queda batería hago refuel */
                 
-                if (bateria == 0) {
+                if (bateria == 1) {
                
                     /* Le enviamos al servidor el mensaje refuel */
                     /* Creamos el mensaje */
@@ -136,12 +136,12 @@ public class TestKitt extends Agente {
         /* Creamos el mensaje */
         
         mensaje = new JsonObject(); 
-        mensaje.add("command",  "login");
-        mensaje.add("world",    mapa);
-        mensaje.add("battery",  this.getAid().getLocalName());
-        mensaje.add("radar",    nombreNeura);
-        mensaje.add("scanner",  nombreNeura);
-        mensaje.add("gps",      nombreNeura);        
+        mensaje.add("command"   ,"login");
+        mensaje.add("world"     ,mapa);
+        mensaje.add("battery"   ,this.getAid().getLocalName());
+        mensaje.add("radar"     ,nombreNeura);
+        mensaje.add("scanner"   ,nombreNeura);
+        mensaje.add("gps"       ,nombreNeura);        
         
         CodificoYEnvioMensaje(idServidor);
         
