@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package neurakitt;
 
 import es.upv.dsic.gti_ia.core.AgentID;
@@ -17,19 +12,23 @@ import java.util.logging.Logger;
 public class NeuraKitt {
 
     /**
-     * @author Alvaro, Juan Germán, 
+     * @author Alvaro, Juan Germán
      * @param args the command line arguments
+     * 
+     * @author Alejandro
+     * @FechaModificacion 01/11/2018
+     * @Motivo añadida traza en caso de excepción
      */
     public static void main(String[] args) {
         try {
             // Identificadores de los agentes
-            AgentID idKitt  = new AgentID("kitt");
-            AgentID idNeura = new AgentID("neura");
+            AgentID idKitt  = new AgentID("KITT");
+            AgentID idNeura = new AgentID("NEURA");
             
             // Creando conexión con el servidor
             System.out.println("Creando conexión");
             AgentsConnection.connect("isg2.ugr.es", 6000, "Girtab", "Geminis", "France", false);
-            System.out.println("Conxión creada");
+            System.out.println("Conexión creada");
             
             
             Neura neura = new Neura(idNeura, idKitt);
@@ -43,7 +42,7 @@ public class NeuraKitt {
             kitt.start();
             System.out.println("Agentes en pie");
         } catch (Exception ex) {
-            System.out.println("FALLA AQUI");
+            System.out.println("Excepción" + ex.toString());
             Logger.getLogger(NeuraKitt.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

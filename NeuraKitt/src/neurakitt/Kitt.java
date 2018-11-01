@@ -1,18 +1,9 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package neurakitt;
 
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
-import es.upv.dsic.gti_ia.core.ACLMessage;
 import es.upv.dsic.gti_ia.core.AgentID;
-import es.upv.dsic.gti_ia.core.SingleAgent;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -21,10 +12,17 @@ import java.util.logging.Logger;
 /**
  *
  * @author Alvaro
+ * 
+ * @author Alejandro
+ * @FechaModificacion 01/11/2018
+ * @Motivo eliminados imports inncesarios, corregidos algunos comenttarios y 
+ * añadida la HU 4
  */
 public class Kitt extends Agente {
     
-    
+    /**
+     * Atributos de Kitt
+     */
     private AgentID idServidor ;
     private String clave ;
     private float bateria ;
@@ -53,7 +51,8 @@ public class Kitt extends Agente {
         System.out.println("Logeado correctamente");
         //System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
 
-        /* Si nos hemos logeado correctamente, guardamos la clave, recibimos del servidor la batería y determinamos la acción a llevar a cabo*/
+        /* Si nos hemos logeado correctamente, guardamos la clave, recibimos del 
+        servidor la batería y determinamos la acción a llevar a cabo*/
         
         if ( !mensaje.get("result").asString().equals("BAD_MAP") && !mensaje.get("result").asString().equals("BAD_PROTOCOL") ) {
             clave = mensaje.get("result").asString();
@@ -61,16 +60,19 @@ public class Kitt extends Agente {
             
             /* Escuchamos al servidor para recibir la batería */
             
-            ReciboYDecodificoMensaje();
-            System.out.println("Recibimos bateria del servidor: "+ mensaje_respuesta.getContent());
+            recibirMensaje();
+            System.out.println("Recibimos bateria del servidor: " + mensaje_respuesta.getContent());
             bateria = mensaje.get("battery").asFloat() ;
             
             /* Escuchamos a neura para recibir la acción a realizar */
 
-            ReciboYDecodificoMensaje();
+            recibirMensaje();
                 
-            /* Mientras que la acción a realizar no sea la de hacer logout, determinamos qué acción es, la llevamos a cabo 
-               y volvemos a escuchar a neura (TO DO - INCOMPLETO) */
+            /* 
+               Mientras que la acción a realizar no sea la de hacer logout, 
+               determinamos qué acción es, la llevamos a cabo y volvemos a 
+               escuchar a neura (TO DO - INCOMPLETO)
+            */
             
             while ( !mensaje.get("accion").equals("logout") ) {
 
@@ -86,28 +88,36 @@ public class Kitt extends Agente {
                     mensaje.add("key", clave);
                     mensaje_respuesta.setContent(mensaje.asString());
             
-                    CodificoYEnvioMensaje(idServidor);
+                    enviarMensaje(idServidor);
                                         
                     /* Recibimos la respuesta del servidor */
                     
-                    ReciboYDecodificoMensaje();
+                    recibirMensaje();
                     
                     if (!mensaje.get("result").asString().equals("OK"))
                         System.err.println("Error al hacer refuel");
                   
                 }
                 
-                /* Realizo la acción que me diga neura */
                 
+                /**
+                 * Recibir acción a realizar proporcionada por el agente NEURA.
+                 * 
+                 * 
+                 * 
+                 * @auhtor Alejandro
+                 * @FechaModificacion 01/11/2018
+                 * 
+                 */
                 else {
-
-                    // RELLENAR AQUÍ
+                    recibirMensaje();
+                    
                     
                 }
                 
                 /* Escuchamos de nuevo a neura */
                 
-                ReciboYDecodificoMensaje(); 
+                recibirMensaje(); 
                 
             }
   
@@ -129,37 +139,34 @@ public class Kitt extends Agente {
         idServidor = new AgentID("Girtab"); // el agente del servidor es Geminis o Girtab?
         
         /* Creamos el mensaje */
-        
         mensaje = new JsonObject(); 
-        mensaje.add("command", "login");
-        mensaje.add("world", "map1");
-        mensaje.add("battery", "kitt");
-        mensaje.add("radar", "neura");
-        mensaje.add("scanner", "neura");
-        mensaje.add("gps", "neura");        
+        mensaje.add("command",  "login");
+        mensaje.add("world",    "map1");
+        mensaje.add("battery",  "kitt");
+        mensaje.add("radar",    "neura");
+        mensaje.add("scanner",  "neura");
+        mensaje.add("gps",      "neura");        
         
-        CodificoYEnvioMensaje(idServidor);
+        enviarMensaje(idServidor);
         
         this.send(mensaje_salida); // lo enviamos                   
         
         /* Recibimos la respuesta del servidor */
         
-        ReciboYDecodificoMensaje();
-        System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
+        recibirMensaje();
+        System.out.println("Respuesta: " + mensaje_respuesta.getContent());
 
         if (mensaje.get("trace").isTrue()) {
             /* Hacemos logout */
             System.out.println("Llamamos a logout");
             logout();
             System.out.println("Despues del logout");
-            
         }
         
-        ReciboYDecodificoMensaje();
-        System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
+        recibirMensaje();
+        System.out.println("Respuesta: " + mensaje_respuesta.getContent());
         
-        return mensaje ;
-        
+        return mensaje;   
     }
     
     /**
@@ -174,7 +181,7 @@ public class Kitt extends Agente {
         mensaje.add("key", clave);
         mensaje_salida.setContent(mensaje.asString());
         
-        CodificoYEnvioMensaje(idServidor);
+        enviarMensaje(idServidor);
 
         /* Recibimos la respuesta del servidor y si el resultado es OK guardamos la traza */
         
