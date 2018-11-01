@@ -261,6 +261,8 @@ public class Neura extends Agente {
        entorno = mensaje.get("radar").asArray();
        for(int i=0; i<entorno.size(); i++){
            radar[i] = entorno.get(i).asInt();
+           
+           
        }
        
        // Ver el contenido de los sensores despues de la actualización
