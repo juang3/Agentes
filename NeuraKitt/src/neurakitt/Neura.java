@@ -1,6 +1,7 @@
 package neurakitt;
 
 import com.eclipsesource.json.JsonArray;
+import com.eclipsesource.json.JsonObject;
 import es.upv.dsic.gti_ia.core.AgentID;
 import java.util.ArrayList;
 
@@ -28,7 +29,9 @@ public class Neura extends Agente {
      */
     
     // Entorno que percibe, cuadrado de 5x5
-    private static int TAM_ENTORNO = 25;
+    private static int TAM_ENTORNO  = 25;
+    private static int NUM_SENSORES = 3;
+    
     // Destinados a moverse en el mapa.    
     
     float scanner[]  = new float[TAM_ENTORNO];    // Tamanio fijo
@@ -53,6 +56,7 @@ public class Neura extends Agente {
         "moveW" ,"logout","moveE" ,
         "moveSW","moveS" ,"moveSE"
     };
+    String accion = "";
     
     
     /**
@@ -66,7 +70,6 @@ public class Neura extends Agente {
     
     // Array necesario para actualizar los sensores.
     JsonArray entorno = new JsonArray();
-    JsonArray coordenadas = new JsonArray();
     
     /**
      * @author Alvaro, Germán
@@ -82,7 +85,7 @@ public class Neura extends Agente {
         //   scanner[i] = (float) Math.random()*70;
            scanner[i] = 0;
         //   radar[i] = (int) Math.floor(Math.random()*3);
-           radar[i] = -1;
+           radar[i] = 0;
         }
         gps[0]=-1;
         gps[1]=-1;
@@ -97,7 +100,7 @@ public class Neura extends Agente {
     
     @Override
     /**
-     * Comportamiento del agente NUERA
+     * Comportamiento del agente NEURA
      * 
      * MIENTRAS <condición de parada>
      *      recibirMensajes(servidor)
@@ -112,21 +115,25 @@ public class Neura extends Agente {
      * 
      * @HU 5.2 y 5.3
      */
-    public void execute(){
-        
+    public void execute(){   
         // while (miAccion != Accion.logout)
         while (true){
-            recibirMensaje();
             // procesarMensaje();       GERMÁN
+            actualizarSensores();
             procesarInformacion();
-            decidirAccion();
+            getSensores();
+            
+            accion = getAccion();
+            mensaje = new JsonObject();
+            mensaje.add("accion", accion);
             enviarMensaje(this.idKITT);
+            
+            System.out.println(" Accion a realizar: " + accion);
         }
         
     }
     
     /** Funciones Auxiliares ****************************************/ 
-    
     
     /**
      * @author: Germán
@@ -273,34 +280,51 @@ public class Neura extends Agente {
     }
    
     
-   private void ActualizacionDeSentidos(){
+   private void actualizarSensores(){
        
        // Ver el contenido de los sensores antes de iniciar la actualización
        getSensores();
        
 
-       recibirMensaje();
-       entorno = mensaje.get("scanner").asArray();
-       for(int i=0; i<entorno.size(); i++){
-           scanner[i] = entorno.get(i).asFloat();
-       }
-       
-       recibirMensaje();
-       coordenadas = mensaje.get("gps").asArray();
-       gps[0] = coordenadas.get(0).asInt();
-       gps[1] = coordenadas.get(1).asInt();
-       gps[2] += 1;
-       
-       recibirMensaje();
-       entorno = mensaje.get("radar").asArray();
-       for(int i=0; i<entorno.size(); i++){
-           radar[i] = entorno.get(i).asInt();
-           
-           
+       //recibirMensaje();
+       //System.out.println("Mensaje recibido " + mensaje_respuesta.getContent());
+       //System.out.println("Respuesta a la pregunta: ¿Eres el scanner? "+ mensaje.toString().contains("scanner"));
+       for(int j=0; j<NUM_SENSORES; j++){
+            recibirMensaje();
+            
+            System.out.println("Mensaje recibido " + mensaje_respuesta.getContent());
+
+            if(mensaje.toString().contains("scanner")){
+
+                entorno = mensaje.get("scanner").asArray();
+                for(int i=0; i<entorno.size(); i++)
+                    scanner[i] = entorno.get(i).asFloat();
+            }
+
+            else if(mensaje.toString().contains("radar")){
+
+                entorno = mensaje.get("radar").asArray();
+                for(int i=0; i<entorno.size(); i++)
+                    radar[i] = entorno.get(i).asInt();
+            }
+
+            else if(mensaje.toString().contains("gps")){
+                gps[0] = mensaje.get("gps").asObject().get("x").asInt();
+                gps[1] = mensaje.get("gps").asObject().get("y").asInt();
+                gps[2] = gps[2]+ 1;
+                
+            }
+
+            else{
+                System.out.println("Percección distinta a radar, scanner y gps ");
+                System.out.println("Contenido del mensaje: " + mensaje.asString());
+            }
        }
        
        // Ver el contenido de los sensores despues de la actualización
        getSensores();
+       
+       
    }
    
     /**
@@ -345,11 +369,11 @@ public class Neura extends Agente {
            System.out.print(scanner[i]+" ");
         }
        
-        System.out.print("\n GPS: x="+ gps[0] + ", y="+ gps[1]);
+        System.out.print("\n GPS: x="+ gps[0] + ", y="+ gps[1] + ", z="+ gps[2]);
        
         System.out.println("\n Radanner: ");
-        for(int i=0; i<9; i++){
-           System.out.println("i= "+i+" "+radanner[i]+" ");
+        for(int i=0; i<TAM_RADANNER; i++){
+           System.out.println("\t i= "+i+" "+radanner[i]+" ");
         }
     }
 }
