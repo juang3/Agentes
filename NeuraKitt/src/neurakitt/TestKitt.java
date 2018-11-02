@@ -53,10 +53,6 @@ public class TestKitt extends Agente {
         //System.out.println("Hola, soy Kitt");
         
         mensaje = login(mapa);  // Recibimos el mensaje al logearnos
-        
-        //System.out.println("respuesta = " + mensaje.get("trace").asString());
-        System.out.println("Logeado correctamente");
-        //System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
 
         /* Si nos hemos logeado correctamente, guardamos la clave, recibimos del servidor la batería y determinamos la acción a llevar a cabo*/
         
@@ -66,13 +62,13 @@ public class TestKitt extends Agente {
             
             /* Escuchamos al servidor para recibir la batería */
             
-            ReciboYDecodificoMensaje();
+            recibirMensaje();
             System.out.println("Recibimos bateria del servidor: "+ mensaje_respuesta.getContent());
             bateria = mensaje.get("battery").asFloat() ;
             
             /* Escuchamos a neura para recibir la acción a realizar */
 
-            ReciboYDecodificoMensaje();
+            recibirMensaje();
                 
             /* Mientras que la acción a realizar no sea la de hacer logout, determinamos qué acción es, la llevamos a cabo 
                y volvemos a escuchar a neura (TO DO - INCOMPLETO) */
@@ -91,11 +87,11 @@ public class TestKitt extends Agente {
                     mensaje.add("key", clave);
                     mensaje_respuesta.setContent(mensaje.asString());
             
-                    CodificoYEnvioMensaje(idServidor);
+                    enviarMensaje(idServidor);
                                         
                     /* Recibimos la respuesta del servidor */
                     
-                    ReciboYDecodificoMensaje();
+                    recibirMensaje();
                     
                     if (!mensaje.get("result").asString().equals("OK"))
                         System.err.println("Error al hacer refuel");
@@ -112,7 +108,7 @@ public class TestKitt extends Agente {
                 
                 /* Escuchamos de nuevo a neura */
                 
-                ReciboYDecodificoMensaje(); 
+                recibirMensaje();
                 
             }
   
@@ -143,24 +139,29 @@ public class TestKitt extends Agente {
         mensaje.add("scanner"   ,nombreNeura);
         mensaje.add("gps"       ,nombreNeura);        
         
-        CodificoYEnvioMensaje(idServidor);
+        enviarMensaje(idServidor);
         
-        this.send(mensaje_salida); // lo enviamos                   
+        /* El método anterior ya envia el mensaje */
+        // this.send(mensaje_salida); // lo enviamos                   
         
         /* Recibimos la respuesta del servidor */
-        
-        ReciboYDecodificoMensaje();
+        recibirMensaje();
         System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
 
-        if (mensaje.get("trace").isTrue()) {
+        
+//        if (mensaje.get("trace").isTrue()) {
+        if (mensaje.toString().contains("trace")){
             /* Hacemos logout */
             System.out.println("Llamamos a logout");
-            logout();
+            // logout();
             System.out.println("Despues del logout");
+            
+            /* Preferentemente prefiero ignorar el mensaje */
+            IgnorarMensaje();
             
         }
         
-        ReciboYDecodificoMensaje();
+        recibirMensaje();
         System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
         
         return mensaje ;
@@ -177,15 +178,16 @@ public class TestKitt extends Agente {
         mensaje = new JsonObject();
         mensaje.add("command", "logout");
         mensaje.add("key", clave);
-        mensaje_salida.setContent(mensaje.asString());
+        // mensaje_salida.setContent(mensaje.asString());
         
-        CodificoYEnvioMensaje(idServidor);
+        enviarMensaje(idServidor);
 
         /* Recibimos la respuesta del servidor y si el resultado es OK guardamos la traza */
         
         try {
             mensaje_respuesta = this.receiveACLMessage();
             mensaje = Json.parse(mensaje_respuesta.getContent()).asObject();
+            
             if (mensaje.get("result").asString().equals("OK")) {
 
                 System.out.println("Recibiendo traza");
