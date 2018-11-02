@@ -157,7 +157,7 @@ public class TestKitt extends Agente {
             System.out.println("Despues del logout");
             
             /* Preferentemente prefiero ignorar el mensaje */
-            IgnorarMensaje();
+            ignorarMensaje();
             
         }
         
