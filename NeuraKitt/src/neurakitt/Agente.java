@@ -44,7 +44,7 @@ public class Agente extends SingleAgent {
      * @author: Germán, Alvaro
      * @return Devuelve éxito o no si se ha realizado corectamente 
      * 
-     * @author Alejandor
+     * @author Alejandro
      * @FechaModificacion 01/11/2018
      * @Motivo Las funciones y métodos deben ser siempre verbos. Cambio 
      * ReciboYDecodificoMensaje() por recibirMensaje()
@@ -68,7 +68,7 @@ public class Agente extends SingleAgent {
      * @author: Germán, Alvaro
      * @param destinatario 
      * 
-     * @author Alejandor
+     * @author Alejandro
      * @FechaModificacion 01/11/2018
      * @Motivo Las funciones y métodos deben ser siempre verbos. Cambio 
      * DecodificoYEnvioMensaje() por enviarMensaje(). Cambiado valor de retorno 
@@ -83,10 +83,10 @@ public class Agente extends SingleAgent {
     }
     
     /**
-     * 
+     * @author Germán
      * @return Devuelve true si se ha ignorado corretamente el mensaje.
      */
-    protected boolean IgnoroMensaje() {
+    protected boolean ignorarMensaje() {
         try {
             mensaje_respuesta = this.receiveACLMessage();
             System.out.println("Mensaje ignorado: "+ mensaje_respuesta.toString());
