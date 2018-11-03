@@ -35,14 +35,15 @@ public class NeuraKitt {
             Neura neura = new Neura(idNeura, idKitt);
             System.out.println("\nAgente neura creado");
             
-//            Kitt kitt = new Kitt(idKitt);
-            TestKitt test_kitt = new TestKitt(idKitt, idNeura, "map1");
+            Kitt kitt = new Kitt(idKitt);
+            //TestKitt test_kitt = new TestKitt(idKitt, idNeura, "map1");
+            //Kitt kitt = new Kitt(idKitt); 
             System.out.println("Agente kitt creado");
             
             System.out.println("Despertando a los agentes Kitt y Neura");
             neura.start();
-//            kitt.start();
-            test_kitt.start();
+            kitt.start();
+            //test_kitt.start();
             System.out.println("Agentes en pie");
             
         } catch (Exception ex) {
