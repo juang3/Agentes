@@ -27,7 +27,7 @@ public class Kitt extends Agente {
     private String clave ;
     private float bateria ;
     
-    
+        
     /**
      * @author Alvaro
      * @param aid
@@ -40,6 +40,7 @@ public class Kitt extends Agente {
     @Override
     /**
      * @author Alvaro
+     * @author Alejandro
      */
     public void execute() {
         
@@ -51,8 +52,7 @@ public class Kitt extends Agente {
         System.out.println("Logeado correctamente");
         //System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
 
-        /* Si nos hemos logeado correctamente, guardamos la clave, recibimos del 
-        servidor la batería y determinamos la acción a llevar a cabo*/
+        /* Si nos hemos logeado correctamente, guardamos la clave, recibimos del servidor la batería y determinamos la acción a llevar a cabo*/
         
         if ( !mensaje.get("result").asString().equals("BAD_MAP") && !mensaje.get("result").asString().equals("BAD_PROTOCOL") ) {
             clave = mensaje.get("result").asString();
@@ -65,8 +65,9 @@ public class Kitt extends Agente {
             bateria = mensaje.get("battery").asFloat() ;
             
             /* Escuchamos a neura para recibir la acción a realizar */
-
+            
             recibirMensaje();
+            System.out.println("Recibimos acción de neura: " + mensaje_respuesta.getContent());
                 
             /* 
                Mientras que la acción a realizar no sea la de hacer logout, 
@@ -76,48 +77,38 @@ public class Kitt extends Agente {
             
             while ( !mensaje.get("accion").equals("logout") ) {
 
+                mensaje = new JsonObject();
                 /* Si no me queda batería hago refuel */
                 
-                if (bateria == 0) {
-               
-                    /* Le enviamos al servidor el mensaje refuel */
-                    /* Creamos el mensaje */
-
-                    mensaje = new JsonObject();
-                    mensaje.add("command", "refuel");
-                    mensaje.add("key", clave);
-                    mensaje_respuesta.setContent(mensaje.asString());
-            
-                    enviarMensaje(idServidor);
-                                        
-                    /* Recibimos la respuesta del servidor */
-                    
-                    recibirMensaje();
-                    
-                    if (!mensaje.get("result").asString().equals("OK"))
-                        System.err.println("Error al hacer refuel");
-                  
+                if (bateria == 1) {
+                    mensaje.add("command", "refuel");                                                          
                 }
                 
+                /* En caso contrario le envío al servidor la acción proporcionada por NEURA */
                 
-                /**
-                 * Recibir acción a realizar proporcionada por el agente NEURA.
-                 * 
-                 * 
-                 * 
-                 * @auhtor Alejandro
-                 * @FechaModificacion 01/11/2018
-                 * 
-                 */
                 else {
-                    recibirMensaje();
-                    
-                    
+                    String accion = mensaje.get("accion").asString() ;                    
+                    mensaje.add("command", accion);                               
                 }
+                
+                mensaje.add("key", clave);
+                mensaje_respuesta.setContent(mensaje.asString());
+                enviarMensaje(idServidor);
+                
+                /* Recibimos la respuesta del servidor */
+                                        
+                if (!mensaje.get("result").asString().equals("OK"))
+                    System.err.println("Error al realizar la acción");
+                           
+                /* El servidor vuelve a enviar las percepciones por lo que tenemos que recibir la batería */
+                recibirMensaje();
+                System.out.println("Recibimos bateria del servidor: " + mensaje_respuesta.getContent());
+                bateria = mensaje.get("battery").asFloat() ;
                 
                 /* Escuchamos de nuevo a neura */
                 
                 recibirMensaje(); 
+                System.out.println("Recibimos acción de neura: " + mensaje_respuesta.getContent());
                 
             }
   
@@ -125,7 +116,7 @@ public class Kitt extends Agente {
             logout();          
             
         }else{
-            System.out.println("MAL");
+            System.out.println("Logueado incorrectamente");
         }
            
         
@@ -139,34 +130,37 @@ public class Kitt extends Agente {
         idServidor = new AgentID("Girtab"); // el agente del servidor es Geminis o Girtab?
         
         /* Creamos el mensaje */
+        
         mensaje = new JsonObject(); 
-        mensaje.add("command",  "login");
-        mensaje.add("world",    "map1");
-        mensaje.add("battery",  "kitt");
-        mensaje.add("radar",    "neura");
-        mensaje.add("scanner",  "neura");
-        mensaje.add("gps",      "neura");        
-        
+        mensaje.add("command", "login");
+        mensaje.add("world", "map1");
+        mensaje.add("battery", "kitt");
+        mensaje.add("radar", "neura");
+        mensaje.add("scanner", "neura");
+        mensaje.add("gps", "neura");        
+       
         enviarMensaje(idServidor);
-        
-        this.send(mensaje_salida); // lo enviamos                   
-        
+                
         /* Recibimos la respuesta del servidor */
         
         recibirMensaje();
-        System.out.println("Respuesta: " + mensaje_respuesta.getContent());
+        System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
+
+        /*  Si la respuesta del servidor es la traza es porque nuestro agente estaba zombie.
+            En ese caso mandamos un logout para que lo saque y hacemos login de nuevo.
+            El segundo login nunca entrará al if por lo que la recursividad aparente está 
+            controlada.
+        */
 
         if (mensaje.get("trace").isTrue()) {
-            /* Hacemos logout */
-            System.out.println("Llamamos a logout");
+            //System.out.println("Llamamos a logout");
             logout();
-            System.out.println("Despues del logout");
+            //System.out.println("Despues del logout");
+            login();
         }
+                
+        return mensaje ;
         
-        recibirMensaje();
-        System.out.println("Respuesta: " + mensaje_respuesta.getContent());
-        
-        return mensaje;   
     }
     
     /**
@@ -179,7 +173,6 @@ public class Kitt extends Agente {
         mensaje = new JsonObject();
         mensaje.add("command", "logout");
         mensaje.add("key", clave);
-        mensaje_salida.setContent(mensaje.asString());
         
         enviarMensaje(idServidor);
 
@@ -192,16 +185,16 @@ public class Kitt extends Agente {
 
                 System.out.println("Recibiendo traza");
                 JsonArray ja = mensaje.get("trace").asArray();
-            byte data[] = new byte [ja.size()];
-            for (int i = 0 ; i < data.length; i++) {
-                data[i] = (byte) ja.get(i).asInt();
-            }
-            FileOutputStream fos = new FileOutputStream("mitraza.png");
-            fos.write(data);
-            fos.close();
+                byte data[] = new byte [ja.size()];
+                for (int i = 0 ; i < data.length; i++) {
+                    data[i] = (byte) ja.get(i).asInt();
+                }
+                FileOutputStream fos = new FileOutputStream("mitraza.png");
+                fos.write(data);
+                fos.close();
 
-            System.out.println("Traza Guardada");
-        }
+                System.out.println("Traza Guardada");
+            }
 
         } catch (InterruptedException | IOException ex) {
             System.err.println("Error al recibir la respuesta o al crear la salida con la traza");
@@ -209,5 +202,5 @@ public class Kitt extends Agente {
         }
 
     }
-    
+
 }
