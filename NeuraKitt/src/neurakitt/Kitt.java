@@ -23,7 +23,7 @@ public class Kitt extends Agente {
     /**
      * Atributos de Kitt
      */
-    private AgentID idServidor ;
+    private final AgentID idServidor = new AgentID("Girtab"); // el agente del servidor es Geminis o Girtab?
     private String clave ;
     private float bateria ;
     
@@ -44,7 +44,7 @@ public class Kitt extends Agente {
      */
     public void execute() {
         
-        //System.out.println("Hola, soy Kitt");
+        System.out.println("Hola, soy Kitt");
         
         mensaje = login();  // Recibimos el mensaje al logearnos
         
@@ -126,8 +126,7 @@ public class Kitt extends Agente {
      * @author Alvaro
      */
     private JsonObject login() {
-        
-        idServidor = new AgentID("Girtab"); // el agente del servidor es Geminis o Girtab?
+        System.out.println("En el login");
         
         /* Creamos el mensaje */
         
@@ -152,11 +151,12 @@ public class Kitt extends Agente {
             controlada.
         */
 
-        if (mensaje.get("trace").isTrue()) {
+        if (mensaje.get("trace").isArray()) {
+            System.out.println("Hemos recibido la traza en el login");
             //System.out.println("Llamamos a logout");
             logout();
             //System.out.println("Despues del logout");
-            login();
+            //login();
         }
                 
         return mensaje ;
@@ -178,10 +178,10 @@ public class Kitt extends Agente {
 
         /* Recibimos la respuesta del servidor y si el resultado es OK guardamos la traza */
         
-        try {
-            mensaje_respuesta = this.receiveACLMessage();
-            mensaje = Json.parse(mensaje_respuesta.getContent()).asObject();
-            if (mensaje.get("result").asString().equals("OK")) {
+        recibirMensaje();
+        if (mensaje.get("result").asString().equals("OK")) {
+
+            try {
 
                 System.out.println("Recibiendo traza");
                 JsonArray ja = mensaje.get("trace").asArray();
@@ -194,13 +194,12 @@ public class Kitt extends Agente {
                 fos.close();
 
                 System.out.println("Traza Guardada");
+
+            } catch (IOException ex) {
+                System.err.println("Error al recibir la respuesta o al crear la salida con la traza");
+                Logger.getLogger(Kitt.class.getName()).log(Level.SEVERE, null, ex);
             }
-
-        } catch (InterruptedException | IOException ex) {
-            System.err.println("Error al recibir la respuesta o al crear la salida con la traza");
-            Logger.getLogger(Kitt.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
 }
