@@ -8,11 +8,7 @@ package neurakitt;
 import com.eclipsesource.json.Json;
 import com.eclipsesource.json.JsonArray;
 import com.eclipsesource.json.JsonObject;
-import com.eclipsesource.json.JsonValue;
-import es.upv.dsic.gti_ia.core.ACLMessage;
 import es.upv.dsic.gti_ia.core.AgentID;
-import es.upv.dsic.gti_ia.core.SingleAgent;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -40,12 +36,12 @@ public class TestKitt extends Agente {
      */
     public TestKitt(AgentID aid, AgentID neura, String mapa) throws Exception {
         super(aid);
+        idServidor = new AgentID("Girtab");
         nombreNeura = neura.getLocalName();
         this.mapa = mapa;
         accion = "";
         
         System.out.println("Agente Kitt creandose");
-        
     }
     
     @Override
@@ -135,7 +131,6 @@ public class TestKitt extends Agente {
      */
     private boolean login(String mapa) {
         
-        idServidor = new AgentID("Girtab");
         
         /* Creamos el mensaje */
         mensaje = new JsonObject(); 
@@ -166,6 +161,7 @@ public class TestKitt extends Agente {
              */
             recibirMensaje();
             System.out.println("[KITT] La nueva respuesta es: " + mensaje.toString());
+            /* Preferentemente prefiero ignorar el mensaje */
             
         }
         /* Comprobando si el mensaje recibido es BAD_MAP e informando de ello */
