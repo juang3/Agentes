@@ -30,7 +30,7 @@ public class TestKitt extends Agente {
     private String mapa;
     private String clave ;
     private float bateria ;
-    private String accionDeNeura;
+    private String accion;
     
     
     /**
@@ -42,7 +42,7 @@ public class TestKitt extends Agente {
         super(aid);
         nombreNeura = neura.getLocalName();
         this.mapa = mapa;
-        accionDeNeura = "";
+        accion = "";
         
         System.out.println("Agente Kitt creandose");
         
@@ -50,83 +50,84 @@ public class TestKitt extends Agente {
     
     @Override
     /**
-     * @author Alvaro
+     * @author Alvaro, German
      */
     public void execute() {
         login(mapa);  // Enviamos mensaje de logueo e informamos de la respuesta recibida.
   
         /* Escuchamos a neura para recibir la acción a realizar */
-        while ( !mensaje.get("accion").toString().contains("logout") ) {
+        while (!"logout".equals(accion)){
+            
             /* Escuchamos al servidor para recibir la batería */
             recibirMensaje();
-            System.out.println("[KITT] Recibimos bateria del servidor: "+ mensaje.toString());
             bateria = mensaje.get("battery").asFloat() ;
+            System.out.println("[KITT] Recibimos bateria del servidor: "+ mensaje.toString());
             
-            /*Escuchamos la decisión de Neura */
+            /* Escuchamos la decisión de Neura */
             recibirMensaje();
+            accion = mensaje.get("accion").asString();
+            
             System.out.println("[KITT] Neura me ha enviado: "+ mensaje.toString());
+            System.out.println("[KITT] Neura me ha enviado: "+ accion);
+            
             
             /*  Habiendo escuchado a ambos.
-             * Al servidor para saber la batería
-             * A Neura para saber la acción a realizar
-             * Kitt decide si realizar la acción o realizar refuel
+             * Al servidor para saber la batería.
+             * A Neura para saber la acción a realizar.
+             * Kitt decide si realizar la acción o realizar refuel.
              */
-            
-            if(mensaje.toString().contains("logout")){
+            if("logout".equals(accion)){
                 System.out.println("[KITT] Neura ha detectado que hemos llegado al destino ");
-                logout();
+                // accion = "logout";
                 // break;
             }
-            /* No hemos llegado al destino, decido si refuel o accionDeNeura */
-            else {
-                /* Limpiando el contenido de 'mensaje' */
-                mensaje = new JsonObject();
+            /* No hemos llegado al destino, decido si refuel o accion de Neura */
+            else if (bateria == 1.0) {
+                accion = "refuel";
+                System.out.println("[KITT] Se decide hacer refuel (nv. de bateria: "+ bateria +")");
+            }
+            /* Lo último es realizar la acción que Neura propone */
+            else {                    
+                System.out.println("[KITT] Se va a realizar la acción que Neura propone: "+ accion);
+            }
+            
+            // Creando el mensaje a enviar al servidor
+            mensaje = new JsonObject();
+            mensaje.add("command", accion); 
+            mensaje.add("key", clave);
                 
-                if (bateria == 1) {
-                    /* Añadimos al mensaje el commando de refuel e informamos de ello */
-                    mensaje.add("command", "refuel");
-                    System.out.println("[KITT] Se decide hacer refuel (nv. de bateria: "+ bateria +")");
-                }
+            // Se envia el mensaje al servidor
+            enviarMensaje(idServidor);
                 
-                /* Lo último es realizar la acción que Neura propone */
-                else {
-                    accionDeNeura = mensaje.get("accion").asString() ;                    
-                    mensaje.add("command", accionDeNeura); 
-                    System.out.println("[KITT] Se va a realizar la acción que Neura propone: "+ mensaje.toString());
-                }
-                
-                // Tras decidir la acción a realizar se añade la clave al mensaje.
-                mensaje.add("key", clave);
-                
-                // Se envcia el mensaje al servidor
-                enviarMensaje(idServidor);
-                
-                /**
-                 * @Observación:
-                 *  Enviado el mensaje, ahora debemos esperar a recibir respuesta del servidor.
-                 *  Que puede ser:
-                 *      OK:             Mensaje recibido correctamente.
-                 *      CRASHED:        El agente se ha estrellado.
-                 *      BAD_COMMAND:    El Commando enviado es desconocido.
-                 *      BAD_PROTOCOL:   El formato Json no es el correcto.
-                 *      BAD_KEY:        NO se ha incluido la clave correctamente.
-                 */
-                /* Recibimos la respuesta del servidor */
-                if     (mensaje.toString().contains("OK"))
-                    System.out.println("Mensaje enviado correctamente ");
-                else if(mensaje.toString().contains("BAD_KEY"))
-                    System.out.println("Mensaje enviado con clave erronea ");
-                else if(mensaje.toString().contains("BAD_COMMAND"))
-                    System.out.println("Mensaje enviado con comando desconocido ");
-                else if(mensaje.toString().contains("BAD_PROTOCOL"))
-                    System.out.println("Mensaje enviado con formato Json incorrecto ");
-                else if(mensaje.toString().contains("CRASHED"))
-                    System.out.println("Mensaje enviado pero agente estrellado ");
-                else{
-                    System.out.println("Respuesta desconocida: "+ mensaje.toString());
-                }
+            /**
+             * @Observación:
+             *  Enviado el mensaje, ahora debemos esperar a recibir respuesta del servidor.
+             *  Que puede ser:
+             *      OK:             Mensaje recibido correctamente.
+             *      CRASHED:        El agente se ha estrellado.
+             *      BAD_COMMAND:    El Commando enviado es desconocido.
+             *      BAD_PROTOCOL:   El formato Json no es el correcto.
+             *      BAD_KEY:        NO se ha incluido la clave correctamente.
+             */
+            
+            recibirMensaje();
+            /* Recibimos la respuesta del servidor */
+            if     (mensaje.toString().contains("OK"))
+                System.out.println("Mensaje enviado correctamente ");
+            else if(mensaje.toString().contains("BAD_KEY"))
+                System.out.println("Mensaje enviado con clave erronea ");
+            else if(mensaje.toString().contains("BAD_COMMAND"))
+                System.out.println("Mensaje enviado con comando desconocido ");
+            else if(mensaje.toString().contains("BAD_PROTOCOL"))
+                System.out.println("Mensaje enviado con formato Json incorrecto ");
+            else if(mensaje.toString().contains("CRASHED"))
+                System.out.println("Mensaje enviado pero agente estrellado ");
+            else{
+                System.out.println("Respuesta desconocida: "+ mensaje.toString());
             }    
-        }      
+        }
+        
+        getTraza();
     }
     
     /**
@@ -190,17 +191,7 @@ public class TestKitt extends Agente {
     /**
      * @author Alvaro
      */
-    private void logout() {
-
-        /* Creamos el mensaje */
-        mensaje = new JsonObject();
-        mensaje.add("command", "logout");
-        mensaje.add("key", clave);
-        
-        /* Enviamos mensaje al servidor */
-        System.out.println("Mensaje logout enviado al servidor: "+ mensaje.toString());
-        enviarMensaje(idServidor);
-
+    private void getTraza() {
         try {
             /* Recibimos la respuesta del servidor */
             mensaje_respuesta = this.receiveACLMessage();
@@ -220,8 +211,7 @@ public class TestKitt extends Agente {
             fos.close();
 
             System.out.println("Traza Guardada");
-        }
-
+            }
         } catch (InterruptedException | IOException ex) {
             System.err.println("Error al recibir la respuesta o al crear la salida con la traza");
             Logger.getLogger(Kitt.class.getName()).log(Level.SEVERE, null, ex);
