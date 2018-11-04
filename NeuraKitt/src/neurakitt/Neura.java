@@ -44,7 +44,7 @@ public class Neura extends Agente {
     private int gps[]           = new int[3];                   // [x, y, nº veces]
     
     /**************************************************************************/
-    private ArrayList caminado  = new ArrayList();      // ¿TIPO?
+    private ArrayList recorrido  = new ArrayList();      // ¿TIPO?
     /**************************************************************************/
 
     // Movimientos posibles.    
@@ -65,6 +65,7 @@ public class Neura extends Agente {
      */
     private static int TAM_RADANNER = 9;
     private float radanner[] = new float[TAM_RADANNER];
+    
     // Identificador del agente KITT
     private AgentID idKITT;
     
@@ -72,13 +73,14 @@ public class Neura extends Agente {
     JsonArray entorno = new JsonArray();
     
     /**
+     * Constructor
      * @author Alvaro, Germán
      * @param aID       identificador de Neura
      * @param idKITT    identificador de receptor de los mensajes de Neura
      * @throws Exception 
      */
 
-    public Neura(AgentID aID, AgentID idKITT) throws Exception {
+    public Neura(AgentID aID, AgentID idKitt) throws Exception {
         super(aID);
         
        for(int i=0; i< TAM_ENTORNO; i++){
@@ -89,13 +91,16 @@ public class Neura extends Agente {
         }
         gps[0]=-1;
         gps[1]=-1;
-        gps[2]= 0;
-       
+        
+        // Entrar en el array recorrido significa que al menos una vez has estado en dicha celda.
+        gps[2]= 1;
+        
        for(int i=0; i< TAM_RADANNER; i++)
            radanner[i] = Float.POSITIVE_INFINITY;
 
         System.out.println("Fin de la construcción de Neura ");
-        this.idKITT = idKITT;
+        idKITT = idKitt;
+        System.out.println("idKitt: " + idKITT.toString());
     }
     
     @Override
@@ -126,9 +131,12 @@ public class Neura extends Agente {
             accion = getAccion();
             mensaje = new JsonObject();
             mensaje.add("accion", accion);
-            enviarMensaje(this.idKITT);
+            enviarMensaje(idKITT);
             
-            System.out.println(" Accion a realizar: " + accion);
+            System.out.println(" [NEURA] identificador de Kitt: "+ idKITT.toString());
+            System.out.println(" [NEURA] Accion a realizar: " + accion);
+            System.out.println(" [NEURA] Contenido del mensaje: "+ mensaje.toString());
+            System.out.println(" [NEURA] Mensaje enviado a Kitt: "+ mensaje_salida.getContent());
         }
         
     }
@@ -283,7 +291,7 @@ public class Neura extends Agente {
    private void actualizarSensores(){
        
        // Ver el contenido de los sensores antes de iniciar la actualización
-       getSensores();
+       //getSensores();
        
 
        //recibirMensaje();
@@ -292,26 +300,36 @@ public class Neura extends Agente {
        for(int j=0; j<NUM_SENSORES; j++){
             recibirMensaje();
             
-            System.out.println("Mensaje recibido " + mensaje_respuesta.getContent());
+            System.out.println("[NEURA] Mensaje recibido del servidor: " + mensaje_respuesta.getContent());
 
             if(mensaje.toString().contains("scanner")){
-
+                
+                // Incorporando la percepción del Json al scanner
                 entorno = mensaje.get("scanner").asArray();
                 for(int i=0; i<entorno.size(); i++)
                     scanner[i] = entorno.get(i).asFloat();
             }
 
             else if(mensaje.toString().contains("radar")){
-
+                
+                // Incorporando la percepción del Json al radar
                 entorno = mensaje.get("radar").asArray();
                 for(int i=0; i<entorno.size(); i++)
                     radar[i] = entorno.get(i).asInt();
             }
 
             else if(mensaje.toString().contains("gps")){
+                // Incorporando la percepción del Json al gps
                 gps[0] = mensaje.get("gps").asObject().get("x").asInt();
                 gps[1] = mensaje.get("gps").asObject().get("y").asInt();
-                gps[2] = gps[2]+ 1;
+                
+                if(recorrido.contains(coordenadas)){
+                    coordenadas.incrementaVisita();
+                }
+                else
+                    recorrido.add(coordenadas);
+                System.out.println("[NEURAAAAA] GPS: "+ mensaje.get("gps").toString() );
+                
                 
             }
 
@@ -322,6 +340,7 @@ public class Neura extends Agente {
        }
        
        // Ver el contenido de los sensores despues de la actualización
+       System.out.println("Sensores Actualizados: ");
        getSensores();
        
        

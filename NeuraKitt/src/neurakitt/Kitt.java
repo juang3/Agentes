@@ -92,7 +92,7 @@ public class Kitt extends Agente {
                 }
                 
                 mensaje.add("key", clave);
-                mensaje_respuesta.setContent(mensaje.asString());
+//                mensaje_respuesta.setContent(mensaje.asString());
                 enviarMensaje(idServidor);
                 
                 /* Recibimos la respuesta del servidor */

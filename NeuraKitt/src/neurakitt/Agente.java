@@ -85,11 +85,11 @@ public class Agente extends SingleAgent {
     /**
      * @author Germán
      * @return Devuelve true si se ha ignorado corretamente el mensaje.
-     */
+     
     protected boolean ignorarMensaje() {
         try {
             mensaje_respuesta = this.receiveACLMessage();
-            System.out.println("Mensaje ignorado: "+ mensaje_respuesta.toString());
+            System.out.println("\nMensaje ignorado: \n"+ mensaje_respuesta.toString());
             return true;    
         } 
         catch (InterruptedException ex) {
@@ -99,5 +99,6 @@ public class Agente extends SingleAgent {
         }
         
     }
+    */
     
 }
