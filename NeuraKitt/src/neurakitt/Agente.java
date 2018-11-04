@@ -22,23 +22,29 @@ public class Agente extends SingleAgent {
     /**
      * 
      * @author Alvaro
-     * @param aid
+     * @param aID
      * @throws Exception
+     * 
+     * @author Alejandro
+     * @FechaModificacion 04/11/2018
+     * @Motivo añadida inicialización de variables
      */
-    public Agente(AgentID aid) throws Exception {
-        super(aid);
+    public Agente(AgentID aID) throws Exception {
+        super(aID);
+        
+        mensaje = new JsonObject();
+        mensaje_respuesta = mensaje_salida = new ACLMessage();
     }
+    
     
     @Override
     /**
      * @author Alvaro
      */
     public void execute() {
-        
-        
-        
-        
+        /* VOID - to be OVERRIDE */
     }
+    
     
     /**
      * @author: Germán, Alvaro
@@ -62,6 +68,7 @@ public class Agente extends SingleAgent {
         return true;
     }
     
+    
     /**
      * Crea un mensaje y se lo envía al destinatario que recibe como parámetro
      * 
@@ -82,6 +89,7 @@ public class Agente extends SingleAgent {
         this.send(mensaje_salida);                      // Enviando el mensaje.
     }
     
+    
     /**
      * @author Germán
      * @return Devuelve true si se ha ignorado corretamente el mensaje.
@@ -97,7 +105,5 @@ public class Agente extends SingleAgent {
             System.out.println("No se ha podido ignorar el mensaje: "+ mensaje_respuesta.toString());
             return false;
         }
-        
     }
-    
 }

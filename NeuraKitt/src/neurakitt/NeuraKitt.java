@@ -20,36 +20,30 @@ public class NeuraKitt {
      * @Motivo añadida traza en caso de excepción
      */
     public static void main(String[] args) {
+        Logger.global.setLevel(Level.OFF);
+        
         try {
             // Identificadores de los agentes
-
-            AgentID idKitt  = new AgentID("KITT000000");
-            AgentID idNeura = new AgentID("NEURA000000");
+            AgentID idKitt  = new AgentID("KITT");
+            AgentID idNeura = new AgentID("NEURA");
             
             // Creando conexión con el servidor
-            System.out.println("Creando conexión");
             AgentsConnection.connect("isg2.ugr.es", 6000, "Girtab", "Geminis", "France", false);
-            System.out.println("Conexión creada");
+            System.out.println("Conectado a isg2.ugr.es");
             
             
-            Neura neura = new Neura(idNeura, idKitt);
-            System.out.println("\nAgente neura creado");
+            Kitt KITT   = new Kitt(idKitt);
+            System.out.println("Agente KITT creado");
+            // Neura NEURA = new Neura(idNeura, idKitt);
+            // System.out.println("Agente NEURA creado");
             
-            Kitt kitt = new Kitt(idKitt);
-            //TestKitt test_kitt = new TestKitt(idKitt, idNeura, "map1");
-            //Kitt kitt = new Kitt(idKitt); 
-            System.out.println("Agente kitt creado");
-            
-            System.out.println("Despertando a los agentes Kitt y Neura");
-            neura.start();
-            kitt.start();
-            //test_kitt.start();
-            System.out.println("Agentes en pie");
+            // Comenzar actividad.
+            // NEURA.start();
+            KITT.start();
             
         } catch (Exception ex) {
             System.out.println("Excepción " + ex.toString());
             Logger.getLogger(NeuraKitt.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
 }

@@ -20,83 +20,98 @@ public class Neura extends Agente {
      * 
      * @author Alejandro
      * @FechaModificación 01/11/2018
-     * @Motivo variables static. Cambio los atributos a privados ya que son
+     * @Motivo variables final. Cambio los atributos a privados ya que son
      * propios del agente. Realizar el acceso mediante métodos get, si procede.
      * 
      * He creado un ENUM con las posibles acciones del agente en lugar de 
      * almacenarlas en un vector.
      * 
+     * @FechaModificación 03/11/2018
+     * @Motivo inclusión de la nueva clase Casilla para la gestión de la memoria
+     * del agente, que sustituye a la matriz GPS[ int [3] ].
      */
     
-    // Entorno que percibe, cuadrado de 5x5
-    private static int TAM_ENTORNO  = 25;
-    private static int NUM_SENSORES = 3;
-    
-    // Destinados a moverse en el mapa.    
-    
-    float scanner[]  = new float[TAM_ENTORNO];    // Tamanio fijo
-    int tamanioScanner = TAM_ENTORNO;
-   
-    int radar[]      = new int[TAM_ENTORNO];      // Tamanio fijo
-    int tamanioRadar = TAM_ENTORNO;
-
+    // Alcance de los sensores. 5x5
+    private final int TAM_ENTORNO  = 25;
+    private final int NUM_SENSORES = 3;
+    private final int TAM_RADANNER = 9;
+    // Destinados a reconocer el mapa.    
+    private ArrayList<Float>    scanner;
+    private ArrayList<Integer>  radar;
+    private ArrayList<Float>    radanner;
     // Destinados a memoria    
-    private int gps[]           = new int[3];                   // [x, y, nº veces]
+    private ArrayList<Casilla> memoria;
+    // private int gps[]   = new int[3];                   // [x, y, nº veces]
     
     /**************************************************************************/
-    private ArrayList caminado  = new ArrayList();      // ¿TIPO?
+    //    private ArrayList caminado;      // ¿TIPO?
     /**************************************************************************/
 
-    // Movimientos posibles.    
+    // Destinados al movimiento  
     /**************************************************************************/
     // private Accion miAccion;                 A USAR MÁS TARDE
     /**************************************************************************/
-    private String movimientos[]= {
-        "moveNW","moveN" ,"moveNE",
-        "moveW" ,"logout","moveE" ,
-        "moveSW","moveS" ,"moveSE"
-    };
-    String accion = "";
-    
-    
-    /**
-     * Contiene la información del scanner y del radar,
-     * reducida a los 8 movimientos.
-     */
-    private static int TAM_RADANNER = 9;
-    private float radanner[] = new float[TAM_RADANNER];
+    private ArrayList<String> movimientos; 
+    private String accion;
     // Identificador del agente KITT
-    private AgentID idKITT;
+    private final AgentID idKITT;    
     
-    // Array necesario para actualizar los sensores.
-    JsonArray entorno = new JsonArray();
     
     /**
-     * @author Alvaro, Germán
-     * @param aID       identificador de Neura
-     * @param idKITT    identificador de receptor de los mensajes de Neura
-     * @throws Exception 
+     * CONSTRUCTOR
+     * 
+     * @author  Alvaro, Germán
+     * @param   aID       identificador de Neura
+     * @param   idKITT    identificador de receptor de los mensajes de Neura
+     * @throws  Exception 
+     * 
+     * 
+     * @author  Alejandro
+     * @FechaModificación 31/11/2018
+     * @Motivo  inclusión de la clase Casilla. Movidas TODAS las inicializaciones
+     *  al constructor, en lugar de en la definición de los miembros.
      */
-
     public Neura(AgentID aID, AgentID idKITT) throws Exception {
         super(aID);
         
-       for(int i=0; i< TAM_ENTORNO; i++){
+        scanner         = new ArrayList(TAM_ENTORNO);
+        radar           = new ArrayList(TAM_ENTORNO);
+        radanner        = new ArrayList(TAM_RADANNER);
+        memoria         = new ArrayList();
+        movimientos     = new ArrayList(9);
+        accion          = "";
+        this.idKITT     = idKITT;
+        
+        
+        movimientos.add("moveNW");
+        movimientos.add("moveN");
+        movimientos.add("moveNE");
+        movimientos.add("moveW");
+        movimientos.add("logout");
+        movimientos.add("moveE");
+        movimientos.add("moveSW");
+        movimientos.add("moveS");
+        movimientos.add("moveSE");
+        
+        for(int i=0; i<TAM_RADANNER; i++)
+            radanner.add(Float.POSITIVE_INFINITY);
+        
+        /**
+        for(int i=0; i< TAM_ENTORNO; i++){
         //   scanner[i] = (float) Math.random()*70;
            scanner[i] = 0;
         //   radar[i] = (int) Math.floor(Math.random()*3);
            radar[i] = 0;
         }
-        gps[0]=-1;
-        gps[1]=-1;
-        gps[2]= 0;
-       
-       for(int i=0; i< TAM_RADANNER; i++)
+        // gps[0]=-1;
+        // gps[1]=-1;
+        // gps[2]= 0;  
+        
+        for(int i=0; i< TAM_RADANNER; i++)
            radanner[i] = Float.POSITIVE_INFINITY;
-
-        System.out.println("Fin de la construcción de Neura ");
-        this.idKITT = idKITT;
+        **/  
     }
+    
     
     @Override
     /**
@@ -117,7 +132,7 @@ public class Neura extends Agente {
      */
     public void execute(){   
         // while (miAccion != Accion.logout)
-        while (true){
+        while (accion != "logout"){
             // procesarMensaje();       GERMÁN
             actualizarSensores();
             procesarInformacion();
@@ -132,6 +147,7 @@ public class Neura extends Agente {
         }
         
     }
+    
     
     /** Funciones Auxiliares ****************************************/ 
     
@@ -190,14 +206,15 @@ public class Neura extends Agente {
      */
     private void procesarInformacion(){
         int traslacion;
-        for(int i=0; i<tamanioScanner; i++){
-//           scanner[i] = (1 - radar[i])*scanner[i];
-            traslacion = 1 - radar[i];    // Transformación, el radar no se altera.
-            if(traslacion < 0){          //Es celda destino
-               scanner[i]= -1;
-            }
+        
+        for(int i=0; i<scanner.size(); i++){
+            // scanner[i] = (1 - radar[i])*scanner[i];
+            traslacion = 1 - radar.get(i);
+            
+            if(traslacion < 0)                  // Es celda destino
+                scanner.set(i, -1f);
             else
-               scanner[i]=traslacion*scanner[i];
+                scanner.set(i, traslacion*scanner.get(i));
         }
         
         actualizarRadanner();
@@ -221,21 +238,25 @@ public class Neura extends Agente {
     * @Motivo Nombre más significativo. Cambio Radanner() por actualizarRadanner()
     *   Cambiada accesibilidad a privada.
     */
-    private void actualizarRadanner(){
-       radanner[0] = scanner[6];
-       radanner[1] = scanner[7];
-       radanner[2] = scanner[8];
-       radanner[3] = scanner[11];
-       radanner[4] = scanner[12];
-       radanner[5] = scanner[13];
-       radanner[6] = scanner[16];
-       radanner[7] = scanner[17];
-       radanner[8] = scanner[18];
+    private void actualizarRadanner() {
+        radanner.set(0, scanner.get(6));
+        radanner.set(1, scanner.get(7));
+        radanner.set(2, scanner.get(8));
+        radanner.set(3, scanner.get(11));
+        radanner.set(4, scanner.get(12));
+        radanner.set(5, scanner.get(13));
+        radanner.set(6, scanner.get(16));
+        radanner.set(7, scanner.get(17));
+        radanner.set(8, scanner.get(18));
     }
    
     
     /**
-     * Neura decide el elemento más prometedor de las proximidades de Kitt.
+     * Neura decide el elemento más prometedor de las proximidades de KITT.
+     * 
+     * En primer lugar, se comprueba la posición 4 por si KITT se encuentra ya
+     * en el destino. En caso de que no lo esté, continúa la búsqueda.
+     * 
      * 
      * @author:  Germán  
      * @return Devuelve la posición del elemento más prometedor.
@@ -252,81 +273,110 @@ public class Neura extends Agente {
      * 
      * - Cambio el nombre del método a decidirAccion().
      * - Cambio visibilidad a privada.
+     * 
+     * @FechaModificacion 03/11/2018
+     * - Cambiado el algoritmo de búsqueda por uno más simple y que no rompa 
+     *   el bucle con varios returns.
+     * 
+     *  El algoritmo busca en radanner por un valor menor que cero, el destino.
+     *  En caso de no encontrarlo, obtiene la casilla más ventajosa para
+     *  alcanzarlo, es decir, aquella que tenga el menor valor de entre todas.
+     * 
+     *  Mantengo la comprobación original de si KITT ya ha llegado al destino.
      */
     private int decidirAccion(){
-       float minimo;
-       minimo = Float.POSITIVE_INFINITY;
-       int posicion = -1;
+        float minimo = Float.POSITIVE_INFINITY;
+        int posicion = -1;
        
-    /**
-     *  Miro primeramente la posición 4 que es donde está Kitt,
-     * para averiguar si estoy en destino.
-     * En otro caso recorro el radanner.
-     */   
-        if(radanner[4]<0)        
-           return 4;            // Kitt está en el destino
-        else{                    // Kitt no está en destino
-            for(int i=0; i< TAM_RADANNER; i++){
-                if(radanner[i]<0)
-                   return i;    
-               
-                else if(radanner[i]<minimo && radanner[i] != 0.0){
-                   minimo = radanner[i];
-                   posicion = i;
-                }
+       
+        if(radanner.get(4) < 0)
+            posicion = 4;
+        else 
+            for(int i=0; i<radanner.size(); i++) {
+                if(radanner.get(i)<0)
+                    posicion = i;
+                else
+                    if(radanner.get(i)<minimo && radanner.get(i) != 0.0) {
+                        minimo = radanner.get(i);
+                        posicion = i;
+                    }
             }
-       }
-       return posicion;
+        
+        return posicion;
     }
    
     
-   private void actualizarSensores(){
+    /**
+     * Recibe los mensajes que envía el servidor a los sensores del agente y 
+     * procesa la información, actualizando su estado interno con los datos
+     * proporcionados por el servidor.
+     * 
+     * @author Germán, Alejandro
+     * 
+     * @FechaModificacion 03/11/2018
+     * 
+     */
+    private void actualizarSensores(){
+        JsonArray datos = new JsonArray();
+        
+        getSensores();
        
-       // Ver el contenido de los sensores antes de iniciar la actualización
-       getSensores();
-       
-
-       //recibirMensaje();
-       //System.out.println("Mensaje recibido " + mensaje_respuesta.getContent());
-       //System.out.println("Respuesta a la pregunta: ¿Eres el scanner? "+ mensaje.toString().contains("scanner"));
-       for(int j=0; j<NUM_SENSORES; j++){
+        for(int j=0; j<NUM_SENSORES; j++){
             recibirMensaje();
             
             System.out.println("Mensaje recibido " + mensaje_respuesta.getContent());
 
-            if(mensaje.toString().contains("scanner")){
-
-                entorno = mensaje.get("scanner").asArray();
-                for(int i=0; i<entorno.size(); i++)
-                    scanner[i] = entorno.get(i).asFloat();
+            if(mensaje.toString().contains("scanner")) {
+                datos = mensaje.get("scanner").asArray();
+                for(int i=0; i<datos.size(); i++)
+                    scanner.set(i, datos.get(i).asFloat());
             }
-
-            else if(mensaje.toString().contains("radar")){
-
-                entorno = mensaje.get("radar").asArray();
-                for(int i=0; i<entorno.size(); i++)
-                    radar[i] = entorno.get(i).asInt();
+            else if(mensaje.toString().contains("radar")) {
+                datos = mensaje.get("radar").asArray();
+                for(int i=0; i<datos.size(); i++)
+                    radar.set(i, datos.get(i).asInt());
             }
+            else if(mensaje.toString().contains("gps")) {
+                int x = mensaje.get("gps").asObject().get("x").asInt(); 
+                int y = mensaje.get("gps").asObject().get("y").asInt();
 
-            else if(mensaje.toString().contains("gps")){
-                gps[0] = mensaje.get("gps").asObject().get("x").asInt();
-                gps[1] = mensaje.get("gps").asObject().get("y").asInt();
-                gps[2] = gps[2]+ 1;
-                
+                Casilla actual = comprobarCasillaExiste(x,y);
+                actual.aumentarContador();
+                memoria.add(actual);
             }
-
-            else{
-                System.out.println("Percección distinta a radar, scanner y gps ");
-                System.out.println("Contenido del mensaje: " + mensaje.asString());
+            else {
+                System.out.println("ERROR: " + mensaje.asString());
             }
-       }
-       
-       // Ver el contenido de los sensores despues de la actualización
-       getSensores();
-       
-       
-   }
+        }
+        getSensores();       
+    }
    
+    
+    /**
+     * Este método comprueba si ya se ha pasado por la posición X,Y, buscando en
+     * la memoria del agente. En caso de encontrar que las coordenadas dadas ya
+     * han sido registradas, delvuelve la casilla en cuestión para que se pueda
+     * trabajar con ella. Sin embargo, si la casilla no se encuentra, significa
+     * que es la primera vez que se pasa por esa posición, luego se guarda en la
+     * memoria creando y devolviendo una nueva casilla para que se pueda trabajar
+     * con ella.
+     * 
+     * @author Alejandro
+     * 
+     * @return el objeto de tipo casilla que corresponde con la posición X,Y 
+     * dada o, en caso de no encontrarse, una casilla recién creada.
+     */
+    private Casilla comprobarCasillaExiste(int x, int y) {
+        
+        for(Casilla i : memoria) {
+            if(i.X==x && i.Y==y)
+                return i;
+        }
+        
+        return new Casilla(x,y);
+    }
+    
+     
     /**
      * Neura indica la acción más prometedora. 
      * 
@@ -344,7 +394,7 @@ public class Neura extends Agente {
      * Cambio el nombre del método a getAccion()
      */
     public String getAccion(){
-       return movimientos[decidirAccion()];
+        return movimientos.get(decidirAccion());
     }
     
     
@@ -357,23 +407,22 @@ public class Neura extends Agente {
      * @author Alejandro
      * @FechaModificación 01/11/2018
      * @Motivo  Cambio PrintSensores() por getSensores()
+     * 
+     * @FechaModificacion 03/11/2018
+     * @Motivo reemplazo de bucles for por funciones propias del lenguaje
      */
     public void getSensores(){
+        
         System.out.print("\n Radar: ");
-        for(int i=0; i<TAM_ENTORNO; i++){
-           System.out.print(radar[i]+" ");
-        }
-       
+        radar.toString();
+  
         System.out.print("\n Scanner: ");
-        for(int i=0; i<TAM_ENTORNO; i++){
-           System.out.print(scanner[i]+" ");
-        }
-       
-        System.out.print("\n GPS: x="+ gps[0] + ", y="+ gps[1] + ", z="+ gps[2]);
-       
+        scanner.toString();
+        
         System.out.println("\n Radanner: ");
-        for(int i=0; i<TAM_RADANNER; i++){
-           System.out.println("\t i= "+i+" "+radanner[i]+" ");
-        }
+        radanner.toString();
+        
+        System.out.println("\n Posición (GPS): ");
+        memoria.toString();       
     }
 }
