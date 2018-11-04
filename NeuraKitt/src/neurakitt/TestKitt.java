@@ -42,6 +42,8 @@ public class TestKitt extends Agente {
         nombreNeura = neura.getLocalName();
         this.mapa = mapa;
         
+        System.out.println("Agente Kitt creandose");
+        
     }
     
     @Override
@@ -50,15 +52,11 @@ public class TestKitt extends Agente {
      */
     public void execute() {
         
-        //System.out.println("Hola, soy Kitt");
-        
-        mensaje = login(mapa);  // Recibimos el mensaje al logearnos
+        login(mapa);  // Enviamos mensaje de logueo e informamos de la respuesta recibida.
 
         /* Si nos hemos logeado correctamente, guardamos la clave, recibimos del servidor la batería y determinamos la acción a llevar a cabo*/
         
         if ( !mensaje.get("result").asString().equals("BAD_MAP") && !mensaje.get("result").asString().equals("BAD_PROTOCOL") ) {
-            clave = mensaje.get("result").asString();
-            System.out.println("Clave almacenada correctamente");
             
             /* Escuchamos al servidor para recibir la batería */
             
@@ -99,16 +97,29 @@ public class TestKitt extends Agente {
                 }
                 
                 /* Realizo la acción que me diga neura */
-                
                 else {
-
-                    // RELLENAR AQUÍ
-                    
+                    String accion = mensaje.get("accion").asString() ;                    
+                    mensaje.add("command", accion);                               
                 }
+                
+                mensaje.add("key", clave);
+//                mensaje_respuesta.setContent(mensaje.asString());
+                enviarMensaje(idServidor);
+                
+                /* Recibimos la respuesta del servidor */
+                                        
+                if (!mensaje.get("result").asString().equals("OK"))
+                    System.err.println("Error al realizar la acción");
+                           
+                /* El servidor vuelve a enviar las percepciones por lo que tenemos que recibir la batería */
+                recibirMensaje();
+                System.out.println("Recibimos bateria del servidor: " + mensaje_respuesta.getContent());
+                bateria = mensaje.get("battery").asFloat() ;
                 
                 /* Escuchamos de nuevo a neura */
                 
-                recibirMensaje();
+                recibirMensaje(); 
+                System.out.println("Recibimos acción de neura: " + mensaje_respuesta.getContent());
                 
             }
   
@@ -123,14 +134,13 @@ public class TestKitt extends Agente {
     }
     
     /**
-     * @author Alvaro
+     * @author Alvaro, Juan Germán
      */
-    private JsonObject login(String mapa) {
+    private boolean login(String mapa) {
         
-        idServidor = new AgentID("Girtab"); // el agente del servidor es Geminis o Girtab?
+        idServidor = new AgentID("Girtab");
         
         /* Creamos el mensaje */
-        
         mensaje = new JsonObject(); 
         mensaje.add("command"   ,"login");
         mensaje.add("world"     ,mapa);
@@ -139,32 +149,45 @@ public class TestKitt extends Agente {
         mensaje.add("scanner"   ,nombreNeura);
         mensaje.add("gps"       ,nombreNeura);        
         
+        /* Enviamos el mensaje */
         enviarMensaje(idServidor);
-        
-        /* El método anterior ya envia el mensaje */
-        // this.send(mensaje_salida); // lo enviamos                   
+        System.out.println("[KITT] El mensaje enviado al servidor es: "+ mensaje.toString());                 
         
         /* Recibimos la respuesta del servidor */
         recibirMensaje();
-        System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
+        System.out.println("[KITT] Respuesta del servidor por el login: "+ mensaje.toString());
 
-        
-//        if (mensaje.get("trace").isTrue()) {
+        /** Las posibles respuesas son: trace, password, BAD_MAP, BAD_PROTOCOL
+         * TRACE:           Ocurre cuando interrumpimos la comunicación abruptamente con el servidor
+         * BAD_MAP:         Cuando escribimos mal nombre del mapa al que queremos loguearnos
+         * BAD_PROTOCOL:    Cuando escribimos mal el formato del Json.
+         */
         if (mensaje.toString().contains("trace")){
-            /* Hacemos logout */
-            System.out.println("Llamamos a logout");
-            // logout();
-            System.out.println("Despues del logout");
             
-            /* Preferentemente prefiero ignorar el mensaje */
-            ignorarMensaje();
+            /* Preferentemente prefiero ignorar el mensaje
+             * y volver a escuchar al servidor para recibir la clave
+             */
+            recibirMensaje();
+            System.out.println("[KITT] La nueva respuesta es: " + mensaje.toString());
             
         }
+        /* Comprobando si el mensaje recibido es BAD_MAP e informando de ello */
+        else if(mensaje.get("result").asString().contains("BAD_MAP")){
+            System.out.println("[KITT] Se ha escrito mal el nombre del mapa "+ mapa);
+            return false;
+        }
+        /* Comprobando si el mensaje recibido es BAD_PROTOCOL e informa de ello */
+        else if(mensaje.get("result").asString().contains("BAD_PROTOCOL")){
+            System.out.println("[KITT] Se ha escrito mal el mensaje a enviar:\n" + mensaje.toString());
+            return false;
+        }
         
-        recibirMensaje();
-        System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
-        
-        return mensaje ;
+        /* En este momento las repuestas BAD_* han sido descartadas, por tanto 
+         * la clave se ha recibido.
+         */
+        System.out.println("En este momento he recibido la clave como respuesta ");
+        clave = mensaje.get("result").asString();
+        return true;
         
     }
     
@@ -174,22 +197,22 @@ public class TestKitt extends Agente {
     private void logout() {
 
         /* Creamos el mensaje */
-        
         mensaje = new JsonObject();
         mensaje.add("command", "logout");
         mensaje.add("key", clave);
-        // mensaje_salida.setContent(mensaje.asString());
         
+        /* Enviamos mensaje al servidor */
+        System.out.println("Mensaje logout enviado al servidor: "+ mensaje.toString());
         enviarMensaje(idServidor);
 
-        /* Recibimos la respuesta del servidor y si el resultado es OK guardamos la traza */
-        
         try {
+            /* Recibimos la respuesta del servidor */
             mensaje_respuesta = this.receiveACLMessage();
             mensaje = Json.parse(mensaje_respuesta.getContent()).asObject();
+            System.out.println("Mensaje recibido, del servidor, tras el logout: " + mensaje.toString());
             
-            if (mensaje.get("result").asString().equals("OK")) {
-
+            /* Cuando la respuesta es OK, guardamos la traza */
+            if (mensaje.get("result").toString().contains("OK")) {
                 System.out.println("Recibiendo traza");
                 JsonArray ja = mensaje.get("trace").asArray();
             byte data[] = new byte [ja.size()];
