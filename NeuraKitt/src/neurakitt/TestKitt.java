@@ -30,6 +30,7 @@ public class TestKitt extends Agente {
     private String mapa;
     private String clave ;
     private float bateria ;
+    private String accionDeNeura;
     
     
     /**
@@ -41,6 +42,7 @@ public class TestKitt extends Agente {
         super(aid);
         nombreNeura = neura.getLocalName();
         this.mapa = mapa;
+        accionDeNeura = "";
         
         System.out.println("Agente Kitt creandose");
         
@@ -51,86 +53,80 @@ public class TestKitt extends Agente {
      * @author Alvaro
      */
     public void execute() {
-        
         login(mapa);  // Enviamos mensaje de logueo e informamos de la respuesta recibida.
-
-        /* Si nos hemos logeado correctamente, guardamos la clave, recibimos del servidor la batería y determinamos la acción a llevar a cabo*/
-        
-        if ( !mensaje.get("result").asString().equals("BAD_MAP") && !mensaje.get("result").asString().equals("BAD_PROTOCOL") ) {
-            
+  
+        /* Escuchamos a neura para recibir la acción a realizar */
+        while ( !mensaje.get("accion").toString().contains("logout") ) {
             /* Escuchamos al servidor para recibir la batería */
-            
             recibirMensaje();
-            System.out.println("Recibimos bateria del servidor: "+ mensaje_respuesta.getContent());
+            System.out.println("[KITT] Recibimos bateria del servidor: "+ mensaje.toString());
             bateria = mensaje.get("battery").asFloat() ;
             
-            /* Escuchamos a neura para recibir la acción a realizar */
-
+            /*Escuchamos la decisión de Neura */
             recibirMensaje();
-                
-            /* Mientras que la acción a realizar no sea la de hacer logout, determinamos qué acción es, la llevamos a cabo 
-               y volvemos a escuchar a neura (TO DO - INCOMPLETO) */
+            System.out.println("[KITT] Neura me ha enviado: "+ mensaje.toString());
             
-            while ( !mensaje.get("accion").equals("logout") ) {
-
-                /* Si no me queda batería hago refuel */
+            /*  Habiendo escuchado a ambos.
+             * Al servidor para saber la batería
+             * A Neura para saber la acción a realizar
+             * Kitt decide si realizar la acción o realizar refuel
+             */
+            
+            if(mensaje.toString().contains("logout")){
+                System.out.println("[KITT] Neura ha detectado que hemos llegado al destino ");
+                logout();
+                // break;
+            }
+            /* No hemos llegado al destino, decido si refuel o accionDeNeura */
+            else {
+                /* Limpiando el contenido de 'mensaje' */
+                mensaje = new JsonObject();
                 
                 if (bateria == 1) {
-               
-                    /* Le enviamos al servidor el mensaje refuel */
-                    /* Creamos el mensaje */
-
-                    mensaje = new JsonObject();
+                    /* Añadimos al mensaje el commando de refuel e informamos de ello */
                     mensaje.add("command", "refuel");
-                    mensaje.add("key", clave);
-                    mensaje_respuesta.setContent(mensaje.asString());
-            
-                    enviarMensaje(idServidor);
-                                        
-                    /* Recibimos la respuesta del servidor */
-                    
-                    recibirMensaje();
-                    
-                    if (!mensaje.get("result").asString().equals("OK"))
-                        System.err.println("Error al hacer refuel");
-                  
+                    System.out.println("[KITT] Se decide hacer refuel (nv. de bateria: "+ bateria +")");
                 }
                 
-                /* Realizo la acción que me diga neura */
+                /* Lo último es realizar la acción que Neura propone */
                 else {
-                    String accion = mensaje.get("accion").asString() ;                    
-                    mensaje.add("command", accion);                               
+                    accionDeNeura = mensaje.get("accion").asString() ;                    
+                    mensaje.add("command", accionDeNeura); 
+                    System.out.println("[KITT] Se va a realizar la acción que Neura propone: "+ mensaje.toString());
                 }
                 
+                // Tras decidir la acción a realizar se añade la clave al mensaje.
                 mensaje.add("key", clave);
-//                mensaje_respuesta.setContent(mensaje.asString());
+                
+                // Se envcia el mensaje al servidor
                 enviarMensaje(idServidor);
                 
+                /**
+                 * @Observación:
+                 *  Enviado el mensaje, ahora debemos esperar a recibir respuesta del servidor.
+                 *  Que puede ser:
+                 *      OK:             Mensaje recibido correctamente.
+                 *      CRASHED:        El agente se ha estrellado.
+                 *      BAD_COMMAND:    El Commando enviado es desconocido.
+                 *      BAD_PROTOCOL:   El formato Json no es el correcto.
+                 *      BAD_KEY:        NO se ha incluido la clave correctamente.
+                 */
                 /* Recibimos la respuesta del servidor */
-                                        
-                if (!mensaje.get("result").asString().equals("OK"))
-                    System.err.println("Error al realizar la acción");
-                           
-                /* El servidor vuelve a enviar las percepciones por lo que tenemos que recibir la batería */
-                recibirMensaje();
-                System.out.println("Recibimos bateria del servidor: " + mensaje_respuesta.getContent());
-                bateria = mensaje.get("battery").asFloat() ;
-                
-                /* Escuchamos de nuevo a neura */
-                
-                recibirMensaje(); 
-                System.out.println("Recibimos acción de neura: " + mensaje_respuesta.getContent());
-                
-            }
-  
-            /* Si hemos recibido un logout como acción de neura se lo enviamos al servidor */
-            logout();          
-            
-        }else{
-            System.out.println("MAL");
-        }
-           
-        
+                if     (mensaje.toString().contains("OK"))
+                    System.out.println("Mensaje enviado correctamente ");
+                else if(mensaje.toString().contains("BAD_KEY"))
+                    System.out.println("Mensaje enviado con clave erronea ");
+                else if(mensaje.toString().contains("BAD_COMMAND"))
+                    System.out.println("Mensaje enviado con comando desconocido ");
+                else if(mensaje.toString().contains("BAD_PROTOCOL"))
+                    System.out.println("Mensaje enviado con formato Json incorrecto ");
+                else if(mensaje.toString().contains("CRASHED"))
+                    System.out.println("Mensaje enviado pero agente estrellado ");
+                else{
+                    System.out.println("Respuesta desconocida: "+ mensaje.toString());
+                }
+            }    
+        }      
     }
     
     /**
