@@ -153,7 +153,8 @@ public class TestNeura {
        radanner[7] = scanner[17];
        radanner[8] = scanner[18];
        
-       radanner[0]= 100;
+       radanner[0]  = 100;
+       radanner[8]  = 101;
    }
    
    /**
@@ -281,7 +282,7 @@ public class TestNeura {
         
         int factorPonderador = -1;
         float valor =-1;
-        for(int i=0 ; i< memoria.size(); i++){
+        for(int i=0 ; i< TAMANIORADANNER; i++){
             factorPonderador = BuscarEnMemoria(
                 casillaActual.X + entornoRadanner.get(i).X,
                 casillaActual.Y + entornoRadanner.get(i).Y);
@@ -299,12 +300,18 @@ public class TestNeura {
             scanner[i] =(float) Math.floor(Math.random()*70);
         }
         
-        Casilla casilla_memoria = new Casilla(9,9);
+        Casilla casilla_9_9 = new Casilla(9,9);
         
-        memoria.add(casilla_memoria);
-        casilla_memoria.aumentarContador();
-        casilla_memoria.aumentarContador();
+        memoria.add(casilla_9_9);
+        casilla_9_9.aumentarContador();
+        casilla_9_9.aumentarContador();
         casillaActual = new Casilla(10, 10);
+        
+        Casilla casilla_11_11 = new Casilla(11,11);
+        casilla_11_11.aumentarContador();
+        casilla_11_11.aumentarContador();
+        casilla_11_11.aumentarContador();
+        memoria.add(casilla_11_11);
     }
     
   
