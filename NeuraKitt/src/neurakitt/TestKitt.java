@@ -34,10 +34,10 @@ public class TestKitt extends Agente {
      * @param aid
      * @throws Exception 
      */
-    public TestKitt(AgentID aid, AgentID neura, String mapa) throws Exception {
+    public TestKitt(AgentID aid, AgentID idNeura, String mapa) throws Exception {
         super(aid);
         idServidor = new AgentID("Girtab");
-        nombreNeura = neura.getLocalName();
+        nombreNeura = idNeura.getLocalName();
         this.mapa = mapa;
         accion = "";
         
@@ -64,7 +64,7 @@ public class TestKitt extends Agente {
             accion = mensaje.get("accion").asString();
             
             System.out.println("[KITT] Neura me ha enviado: "+ mensaje.toString());
-            System.out.println("[KITT] Neura me ha enviado: "+ accion);
+//            System.out.println("[KITT] Neura me ha enviado: "+ accion);
             
             
             /*  Habiendo escuchado a ambos.
@@ -178,14 +178,15 @@ public class TestKitt extends Agente {
         /* En este momento las repuestas BAD_* han sido descartadas, por tanto 
          * la clave se ha recibido.
          */
-        System.out.println("En este momento he recibido la clave como respuesta ");
+        
         clave = mensaje.get("result").asString();
+        System.out.println("En este momento he recibido como respuesta la clave: "+ clave);
         return true;
         
     }
     
     /**
-     * @author Alvaro
+     * @author Alvaro, German
      */
     private void getTraza() {
         try {

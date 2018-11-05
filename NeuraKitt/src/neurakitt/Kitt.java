@@ -44,8 +44,8 @@ public class Kitt extends Agente {
     public Kitt(AgentID aidKitt, AgentID aidNeura, AgentID aidServidor, String mapa) throws Exception {
         super(aidKitt);
         
-        this.nombreNeura = aidNeura.getLocalName();
-        this.idServidor = aidServidor;
+        nombreNeura = aidNeura.getLocalName();
+        idServidor = aidServidor;
         this.mapa = mapa;
         
         clave = "";
@@ -87,6 +87,7 @@ public class Kitt extends Agente {
                 System.out.println("[KITT] Neura ha detectado que hemos llegado al destino ");
                 // accion = "logout";       // Ya en si, la accion es logout
                 // break;
+                //logout();
             }
             /* No hemos llegado al destino, decido si refuel o accion de Neura */
             else if (bateria == 1.0) {
@@ -272,8 +273,9 @@ public class Kitt extends Agente {
          * la clave se ha recibido.
          */
         System.out.println("En este momento he recibido la clave como respuesta ");
-        System.out.println("Clave: " + clave);
         clave = mensaje.get("result").asString();
+        System.out.println("Clave: " + clave);
+        
         return true;
     }
     

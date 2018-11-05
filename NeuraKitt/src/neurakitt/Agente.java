@@ -33,7 +33,8 @@ public class Agente extends SingleAgent {
         super(aID);
         
         mensaje = new JsonObject();
-        mensaje_respuesta = mensaje_salida = new ACLMessage();
+        mensaje_respuesta = new ACLMessage();
+        mensaje_salida = new ACLMessage();
     }
     
     
@@ -57,7 +58,9 @@ public class Agente extends SingleAgent {
      */
     protected boolean recibirMensaje(){
         try{
+//            System.out.println("Recibiendo mensaje");
             mensaje_respuesta = this.receiveACLMessage();
+            System.out.println("El mensaje recibido es:" + mensaje_respuesta.getContent());
         }
         catch(InterruptedException ex){
             System.err.println(this.getName() + " Error en la recepción del mensaje. ");

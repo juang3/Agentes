@@ -77,6 +77,8 @@ public class Neura extends Agente {
         radar           = new ArrayList(TAM_ENTORNO);
         radanner        = new ArrayList(TAM_RADANNER);
         memoria         = new ArrayList();
+        System.out.println("***********************************************");
+        System.out.println(radar.size() + " Contenido del Radar: "+ radar.toString());
         
        /**
         * Contiene la información del scanner y del radar,
@@ -98,7 +100,13 @@ public class Neura extends Agente {
         movimientos.add("moveSE");
         
         for(int i=0; i<TAM_RADANNER; i++)
-            radanner.add(Float.POSITIVE_INFINITY); 
+            radanner.add(Float.POSITIVE_INFINITY);
+        
+        for(int i=0; i<TAM_ENTORNO; i++)
+            radar.add(Integer.MAX_VALUE); 
+        
+        for(int i=0; i<TAM_ENTORNO; i++)
+            scanner.add(Float.POSITIVE_INFINITY); 
     }
     
     
@@ -121,10 +129,15 @@ public class Neura extends Agente {
      */
     public void execute(){   
         // while (miAccion != Accion.logout)
+        System.out.println("[NEURA] Estoy en Execute ");
         while (accion != "logout"){
+            System.out.println("Dentro del While ");
             // procesarMensaje();       GERMÁN
+            System.out.println("Actualizaré los sensores ");
             actualizarSensores();
+            System.out.println("Actualizados los sensores ");
             procesarInformacion();
+            System.out.println("Procesando sensores ");
             getSensores();
             
             accion = getAccion();
@@ -282,13 +295,16 @@ public class Neura extends Agente {
        
        
         if(radanner.get(4) < 0)
-            posicion = 4;
+            posicion = 4;                           // Determina que Kitt ya está en el destino.
         else 
             for(int i=0; i<radanner.size(); i++) {
                 if(radanner.get(i)<0)
-                    posicion = i;
+                    posicion = i;                   // Romper el bucle para dejar de buscar.
                 else
-                    if(radanner.get(i)<minimo && radanner.get(i) != 0.0) {
+                    if(radanner.get(i)<minimo &&    // Encuentra un valor inferior
+                       radanner.get(i) != 0.0 &&    // El valor 0.0 indica obstáculo
+                       i != 4)                      // 4 indica la posición del coche, no debe ser una opción a moverse
+                    {
                         minimo = radanner.get(i);
                         posicion = i;
                     }
@@ -309,14 +325,15 @@ public class Neura extends Agente {
      * 
      */
     private void actualizarSensores(){
-        
+        System.out.println("Dentro de actualizar sensores");
         JsonArray datos = new JsonArray();
+        System.out.println("Tras el JsonArray");
         // Ver el contenido de los sensores antes de iniciar la actualización
-        // getSensores();
+         getSensores();
        
         for(int j=0; j<NUM_SENSORES; j++){
             recibirMensaje();
-            System.out.println("[NEURA] Mensaje recibido del servidor: " + mensaje_respuesta.getContent());
+            System.out.println("[NEURA] Mensaje recibido del servidor: " + mensaje.toString());
 
 
             if(mensaje.toString().contains("scanner")) {
@@ -325,9 +342,16 @@ public class Neura extends Agente {
                     scanner.set(i, datos.get(i).asFloat());
             }
             else if(mensaje.toString().contains("radar")) {
+                System.out.println("Dentro del apartado Radar");
                 datos = mensaje.get("radar").asArray();
-                for(int i=0; i<datos.size(); i++)
+                System.out.println("Volcado del Radar realizado: " + datos.toString());
+                
+                for(int i=0; i<datos.size(); i++){
                     radar.set(i, datos.get(i).asInt());
+                    // System.out.println("Radar ["+i+"] = "+ radar.get(i));
+                }
+                System.out.println(" Informando del radar: "+ radar.toString()+ "!!!");
+                getSensores();
             }
             else if(mensaje.toString().contains("gps")) {
                 int x = mensaje.get("gps").asObject().get("x").asInt(); 
@@ -340,6 +364,8 @@ public class Neura extends Agente {
             else {
                 System.out.println("ERROR: " + mensaje.asString());
             }
+            
+            getSensores();
        }
        
        // Ver el contenido de los sensores despues de la actualización
@@ -410,16 +436,9 @@ public class Neura extends Agente {
      */
     public void getSensores(){
         
-        System.out.print("\n Radar: ");
-        radar.toString();
-  
-        System.out.print("\n Scanner: ");
-        scanner.toString();
-        
-        System.out.println("\n Radanner: ");
-        radanner.toString();
-        
-        System.out.println("\n Posición (GPS): ");
-        memoria.toString();       
+        System.out.print("\n Radar: " + radar.toString());
+        System.out.print("\n Scanner: " + scanner.toString());
+        System.out.println("\n Radanner: " + radanner.toString());
+        System.out.println("\n Posición (GPS): " +  memoria.toString());       
     }
 }

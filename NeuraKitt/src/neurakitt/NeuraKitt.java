@@ -35,13 +35,13 @@ public class NeuraKitt {
             System.out.println("Conectado a isg2.ugr.es");
             
             
-            //TestKitt test_kitt = new TestKitt(idKitt, idNeura, "map1");
+            TestKitt test_kitt = new TestKitt(idKitt, idNeura, mapa);
             //System.out.println("Agente kitt creado");
-            //test_kitt.start();
+            
             
             System.out.println("Agentes en pie");
 
-            Kitt KITT = new Kitt(idKitt, idNeura, idServidor, mapa);
+            //Kitt KITT = new Kitt(idKitt, idNeura, idServidor, mapa);
             System.out.println("Agente KITT creado");
             Neura NEURA = new Neura(idNeura, idKitt);
             System.out.println("Agente NEURA creado");
@@ -49,7 +49,8 @@ public class NeuraKitt {
             // Comenzar actividad.
             System.out.println("Despertando a los agentes Kitt y Neura");
             NEURA.start();
-            KITT.start();
+            test_kitt.start();
+            //KITT.start();
 
             
         } catch (Exception ex) {
