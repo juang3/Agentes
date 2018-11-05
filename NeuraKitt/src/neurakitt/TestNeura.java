@@ -40,6 +40,10 @@ public class TestNeura {
     int TAMANIORADANNER = 9;
     float radanner[] = new float[TAMANIORADANNER];
     
+    ArrayList<Casilla> memoria;
+    Casilla casillaActual;
+    ArrayList<Casilla> entornoRadanner;
+    
     
     /**
     * Constructor, rellena los sensores para realizar test de los métodos.
@@ -56,7 +60,21 @@ public class TestNeura {
        //radar[8]=0;
        //radar[9]=2;
        //scanner[8]=(float) 0.4;
-            
+       memoria         = new ArrayList();
+
+       entornoRadanner  = new ArrayList();
+       
+       entornoRadanner.add(new Casilla(-1,-1));    // NW
+        entornoRadanner.add(new Casilla( 0,-1));    // N
+        entornoRadanner.add(new Casilla( 1,-1));    // NE
+        entornoRadanner.add(new Casilla(-1, 0));    // E
+        entornoRadanner.add(new Casilla( 0, 0));    // Kitt
+        entornoRadanner.add(new Casilla( 1, 0));    // W
+        entornoRadanner.add(new Casilla(-1, 1));    // SW
+        entornoRadanner.add(new Casilla( 0, 1));    // S
+        entornoRadanner.add(new Casilla( 1, 1));    // SE
+       
+             
    }
    
    /**
@@ -134,6 +152,8 @@ public class TestNeura {
        radanner[6] = scanner[16];
        radanner[7] = scanner[17];
        radanner[8] = scanner[18];
+       
+       radanner[0]= 100;
    }
    
    /**
@@ -158,6 +178,9 @@ public class TestNeura {
        for(int i=0; i<9; i++){
            System.out.println("i= "+i+" "+radanner[i]+" ");
        }
+       
+       System.out.println("\n Memoria: "+ memoria.toString());
+       
    }
    
    /**
@@ -206,15 +229,101 @@ public class TestNeura {
        int decision = Decision();
        return movimientos[decision];
    }
+   
+       /**
+     * Este método comprueba si ya se ha pasado por la posición X,Y, buscando en
+     * la memoria del agente. En caso de encontrar que las coordenadas dadas ya
+     * han sido registradas, delvuelve la casilla en cuestión para que se pueda
+     * trabajar con ella. Sin embargo, si la casilla no se encuentra, significa
+     * que es la primera vez que se pasa por esa posición, luego se guarda en la
+     * memoria creando y devolviendo una nueva casilla para que se pueda trabajar
+     * con ella.
+     * 
+     * @author Alejandro
+     * 
+     * @return el objeto de tipo casilla que corresponde con la posición X,Y 
+     * dada o, en caso de no encontrarse, una casilla recién creada.
+     */
+    private Casilla comprobarCasillaExiste(int x, int y) {
+        
+        for(Casilla i : memoria) {
+            if(i.X==x && i.Y==y)
+                return i;
+        }
+        
+        return new Casilla(x,y);
+    }
+    
+    /**
+     * @author: German
+     * 
+     * Busca en el AarayList memoria si la casilla de coordenadas X,Y estaa en memoria
+     * de ser asii devuelve las veces que el coche ha asado por dicha casilla.
+     * @param x     Coordenada de abcisa
+     * @param y     Coordenada de ordenada
+     * @return Las veces que ha pasado por dicha casilla
+     */
+    private int BuscarEnMemoria(int x, int y){
+        int contador = 1;
+        for(Casilla i : memoria)
+            if(i.X==x && i.Y==y)
+                return i.getContador();
+        return contador;
+    }
+    
+    /**
+     * @author: German
+     * PonderadorEntorno determina las casillas por donde ha estado el coche
+     * haciendo uso de la memoria, con ello pondera la percepcion del radaner
+     * para hacer dicha opcion menos prometedora.
+     */
+    private void ponderadorEntorno(){
+        
+        int factorPonderador = -1;
+        float valor =-1;
+        for(int i=0 ; i< memoria.size(); i++){
+            factorPonderador = BuscarEnMemoria(
+                casillaActual.X + entornoRadanner.get(i).X,
+                casillaActual.Y + entornoRadanner.get(i).Y);
+            if(factorPonderador>1){
+                radanner[i] = radanner[i]*factorPonderador;
+            }
+        }
+    }
+    
+    /***************************************************************************/
+    // Metodo para inicializar los sensores para verificar el funcionamiento.
+    public void inicializarSensores(){
+        for(int i=0; i<TAMANIOENTORNO; i++){
+            radar[i] =  (int) Math.floor(Math.random()*2);
+            scanner[i] =(float) Math.floor(Math.random()*70);
+        }
+        
+        Casilla casilla_memoria = new Casilla(9,9);
+        
+        memoria.add(casilla_memoria);
+        casilla_memoria.aumentarContador();
+        casilla_memoria.aumentarContador();
+        casillaActual = new Casilla(10, 10);
+    }
+    
   
 /** ZONA MAIN *****************************************************************/
     public static void main(String[] args) {
     // Test para saber el contenido de los atributos.
         TestNeura prueba = new TestNeura();
+        //prueba.PrintSensores();
+        
+    // Test para verificar la correcta transformación. 
+        //prueba.Radanner();
+        //prueba.PrintSensores();
+        System.out.print("\n Antes de Analizar Entorno ");
+        prueba.inicializarSensores();
+        prueba.Radanner();
         prueba.PrintSensores();
         
-    // Test para verificar la correcta transformación.   
-        prueba.Radanner();
+        System.out.print("\n Despues de Analizar Entorno ");
+        prueba.ponderadorEntorno();
         prueba.PrintSensores();
         
     // Test para verificar el movimiento decidido. 
