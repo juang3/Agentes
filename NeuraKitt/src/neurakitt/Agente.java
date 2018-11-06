@@ -35,6 +35,8 @@ public class Agente extends SingleAgent {
         mensaje = new JsonObject();
         mensaje_respuesta = new ACLMessage();
         mensaje_salida = new ACLMessage();
+        
+        System.out.println("Agente "+this.getAid().getLocalName()+" creado ");
     }
     
     
@@ -60,7 +62,9 @@ public class Agente extends SingleAgent {
         try{
 //            System.out.println("Recibiendo mensaje");
             mensaje_respuesta = this.receiveACLMessage();
-            System.out.println("El mensaje recibido es:" + mensaje_respuesta.getContent());
+            System.out.println("["+mensaje_respuesta.getReceiver().getLocalName()+"]"
+                    +"\t mensaje recibido "+"de "+mensaje_respuesta.getSender().getLocalName()
+                    +"\t\t contenido: "+ mensaje_respuesta.getContent());
         }
         catch(InterruptedException ex){
             System.err.println(this.getName() + " Error en la recepción del mensaje. ");
@@ -87,8 +91,13 @@ public class Agente extends SingleAgent {
     protected void enviarMensaje(AgentID destinatario){
         mensaje_salida = new ACLMessage();              // Limpia
         mensaje_salida.setSender(this.getAid());        // Emisor (objeto que invoca)
-        mensaje_salida.setReceiver(destinatario);       // Receptor (obejto dado como parámetro)
+        mensaje_salida.setReceiver(destinatario);       // Receptor (objeto dado como parámetro)
         mensaje_salida.setContent(mensaje.toString());  // Contenido del mensaje
         this.send(mensaje_salida);                      // Enviando el mensaje.
+        
+        System.out.println("["+mensaje_salida.getSender().getLocalName()
+                +"]\t envio mensaje a "
+                + mensaje_salida.getReceiver().getLocalName()
+                + "\t\t contenido: "+ mensaje_salida.getContent());
     }
 }
