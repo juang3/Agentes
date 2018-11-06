@@ -281,13 +281,14 @@ public class TestNeura {
     private void ponderadorEntorno(){
         
         int factorPonderador = -1;
-        float valor =-1;
         for(int i=0 ; i< TAMANIORADANNER; i++){
-            factorPonderador = BuscarEnMemoria(
-                casillaActual.X + entornoRadanner.get(i).X,
-                casillaActual.Y + entornoRadanner.get(i).Y);
-            if(factorPonderador>1){
-                radanner[i] = radanner[i]*factorPonderador;
+            if(radanner[i]>0){
+                factorPonderador = BuscarEnMemoria(
+                    casillaActual.X + entornoRadanner.get(i).X,
+                    casillaActual.Y + entornoRadanner.get(i).Y);
+                if(factorPonderador>1){
+                    radanner[i] = radanner[i]*factorPonderador;
+                }
             }
         }
     }
