@@ -45,7 +45,9 @@ public class Neura extends Agente {
     
     // Destinados al radanner
     private ArrayList<String> movimientos;
+    ArrayList<Casilla> entornoRadanner;
     private String accion;
+    private Casilla casillaActual; 
 
 
     // Destinados al movimiento  
@@ -98,6 +100,16 @@ public class Neura extends Agente {
         movimientos.add("moveSW");
         movimientos.add("moveS");
         movimientos.add("moveSE");
+        
+        entornoRadanner.add(new Casilla(-1,-1));    // NW
+        entornoRadanner.add(new Casilla( 0,-1));    // N
+        entornoRadanner.add(new Casilla( 1,-1));    // NE
+        entornoRadanner.add(new Casilla(-1, 0));    // E
+        entornoRadanner.add(new Casilla( 0, 0));    // Kitt
+        entornoRadanner.add(new Casilla( 1, 0));    // W
+        entornoRadanner.add(new Casilla(-1, 1));    // SW
+        entornoRadanner.add(new Casilla( 0, 1));    // S
+        entornoRadanner.add(new Casilla( 1, 1));    // SE
         
         for(int i=0; i<TAM_RADANNER; i++)
             radanner.add(Float.POSITIVE_INFINITY);
@@ -253,6 +265,8 @@ public class Neura extends Agente {
         radanner.set(6, scanner.get(16));
         radanner.set(7, scanner.get(17));
         radanner.set(8, scanner.get(18));
+        
+        ponderadorDelEntorno();
     }
    
     
@@ -357,9 +371,9 @@ public class Neura extends Agente {
                 int x = mensaje.get("gps").asObject().get("x").asInt(); 
                 int y = mensaje.get("gps").asObject().get("y").asInt();
 
-                Casilla actual = comprobarCasillaExiste(x,y);
-                actual.aumentarContador();
-                memoria.add(actual);
+                casillaActual = comprobarCasillaExiste(x,y);
+                casillaActual.aumentarContador();
+                memoria.add(casillaActual);
             }
             else {
                 System.out.println("ERROR: " + mensaje.asString());
@@ -399,6 +413,44 @@ public class Neura extends Agente {
         return new Casilla(x,y);
     }
     
+    /**
+     * @author: German
+     * 
+     * Busca en el AarayList memoria si la casilla de coordenadas X,Y estaa en memoria
+     * de ser asii devuelve las veces que el coche ha asado por dicha casilla.
+     * @param x     Coordenada de abcisa
+     * @param y     Coordenada de ordenada
+     * @return Las veces que ha pasado por dicha casilla
+     */
+    private int BuscarEnMemoria(int x, int y){
+        int contador = 1;
+        for(Casilla i : memoria)
+            if(i.X==x && i.Y==y)
+                return i.getContador();
+        return contador;
+    }
+    
+    /**
+     * @author: German
+     * AnalizadorEntorno determina las casillas por donde ha estado el coche
+     * haciendo uso de la memoria, con ello pondera la percepcion del radaner
+     * para hacer dicha opcion menos prometedora.
+     */
+    private void ponderadorDelEntorno(){
+        
+        int factorPonderador = -1;
+        
+        for(int i=0 ; i< radanner.size(); i++){
+            if(radanner.get(i)>0){
+                factorPonderador = BuscarEnMemoria(
+                    casillaActual.X + entornoRadanner.get(i).X,
+                    casillaActual.Y + entornoRadanner.get(i).Y);
+                if(factorPonderador>1){
+                    radanner.set(i, radanner.get(i)*factorPonderador);
+                }
+            }
+        }
+    }
      
     /**
      * Neura indica la acción más prometedora. 
@@ -440,5 +492,5 @@ public class Neura extends Agente {
         System.out.print("\n Scanner: " + scanner.toString());
         System.out.println("\n Radanner: " + radanner.toString());
         System.out.println("\n Posición (GPS): " +  memoria.toString());       
-    }
+    } 
 }
