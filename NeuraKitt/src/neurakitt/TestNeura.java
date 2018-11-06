@@ -279,10 +279,11 @@ public class TestNeura {
      * para hacer dicha opcion menos prometedora.
      */
     private void ponderadorEntorno(){
-        
+        int contador =0;
         int factorPonderador = -1;
         for(int i=0 ; i< TAMANIORADANNER; i++){
             if(radanner[i]>0){
+                contador++;
                 factorPonderador = BuscarEnMemoria(
                     casillaActual.X + entornoRadanner.get(i).X,
                     casillaActual.Y + entornoRadanner.get(i).Y);
@@ -291,6 +292,7 @@ public class TestNeura {
                 }
             }
         }
+        System.out.println("Veces que ha entrado a ponderar "+ contador);
     }
     
     /***************************************************************************/
