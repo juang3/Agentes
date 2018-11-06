@@ -58,13 +58,13 @@ public class TestKitt extends Agente {
             /* Escuchamos al servidor para recibir la batería */
             recibirMensaje();
             bateria = mensaje.get("battery").asFloat() ;
-            System.out.println("[KITT] Recibimos bateria del servidor: "+ mensaje.toString());
+//            System.out.println("[KITT] Recibimos bateria del servidor: "+ mensaje.toString());
             
             /* Escuchamos la decisión de Neura */
             recibirMensaje();
             accion = mensaje.get("accion").asString();
             
-            System.out.println("[KITT] Neura me ha enviado: "+ mensaje.toString());
+//            System.out.println("[KITT] Neura me ha enviado: "+ mensaje.toString());
 //            System.out.println("[KITT] Neura me ha enviado: "+ accion);
             
             
@@ -76,18 +76,18 @@ public class TestKitt extends Agente {
             
 //            if("logout".equals(accion)  || iteraciones > 1200){
               if("logout".equals(accion)){
-                System.out.println("[KITT] Neura ha detectado que hemos llegado al destino ");
+//                System.out.println("[KITT] Neura ha detectado que hemos llegado al destino ");
                 accion = "logout";
                 // break;
             }
             /* No hemos llegado al destino, decido si refuel o accion de Neura */
             else if (bateria == 1.0) {
                 accion = "refuel";
-                System.out.println("[KITT] Se decide hacer refuel (nv. de bateria: "+ bateria +")");
+//                System.out.println("[KITT] Se decide hacer refuel (nv. de bateria: "+ bateria +")");
             }
             /* Lo último es realizar la acción que Neura propone */
             else {                    
-                System.out.println("[KITT] Se va a realizar la acción que Neura propone: "+ accion);
+//                System.out.println("[KITT] Se va a realizar la acción que Neura propone: "+ accion);
             }
             
             // Creando el mensaje a enviar al servidor
@@ -163,11 +163,11 @@ public class TestKitt extends Agente {
         
         /* Enviamos el mensaje */
         enviarMensaje(idServidor);
-        System.out.println("[KITT] El mensaje enviado al servidor es: "+ mensaje.toString());                 
+//        System.out.println("[KITT] El mensaje enviado al servidor es: "+ mensaje.toString());                 
         
         /* Recibimos la respuesta del servidor */
         recibirMensaje();
-        System.out.println("[KITT] Respuesta del servidor por el login: "+ mensaje.toString());
+//       System.out.println("[KITT] Respuesta del servidor por el login: "+ mensaje.toString());
 
         /** Las posibles respuesas son: trace, password, BAD_MAP, BAD_PROTOCOL
          * TRACE:           Ocurre cuando interrumpimos la comunicación abruptamente con el servidor
@@ -180,18 +180,22 @@ public class TestKitt extends Agente {
              * y volver a escuchar al servidor para recibir la clave
              */
             recibirMensaje();
-            System.out.println("[KITT] La nueva respuesta es: " + mensaje.toString());
+//            System.out.println("[KITT] La nueva respuesta es: " + mensaje.toString());
             /* Preferentemente prefiero ignorar el mensaje */
             
         }
         /* Comprobando si el mensaje recibido es BAD_MAP e informando de ello */
         else if(mensaje.get("result").asString().contains("BAD_MAP")){
-            System.out.println("[KITT] Se ha escrito mal el nombre del mapa "+ mapa);
+            System.out.println("[ "+this.getAid().getLocalName() 
+                    +"] Se ha escrito mal el nombre del mapa "
+                    + mapa);
             return false;
         }
         /* Comprobando si el mensaje recibido es BAD_PROTOCOL e informa de ello */
         else if(mensaje.get("result").asString().contains("BAD_PROTOCOL")){
-            System.out.println("[KITT] Se ha escrito mal el mensaje a enviar:\n" + mensaje.toString());
+            System.out.println("["+this.getAid().getLocalName()
+                    +"] Se ha escrito mal el mensaje a enviar:\n"
+                    + mensaje.toString());
             return false;
         }
         
@@ -200,7 +204,7 @@ public class TestKitt extends Agente {
          */
         
         clave = mensaje.get("result").asString();
-        System.out.println("En este momento he recibido como respuesta la clave: "+ clave);
+//        System.out.println("En este momento he recibido como respuesta la clave: "+ clave);
         return true;
         
     }
@@ -211,9 +215,8 @@ public class TestKitt extends Agente {
     private void getTraza() {
         try {
             /* Recibimos la respuesta del servidor */
-            mensaje_respuesta = this.receiveACLMessage();
-            mensaje = Json.parse(mensaje_respuesta.getContent()).asObject();
-            System.out.println("Mensaje recibido, del servidor, tras el logout: " + mensaje.toString());
+            recibirMensaje();
+//            System.out.println("Mensaje recibido, del servidor, tras el logout: " + mensaje.toString());
             
             /* Cuando la respuesta es OK, guardamos la traza */
             if (mensaje.toString().contains("trace")) {
@@ -231,7 +234,7 @@ public class TestKitt extends Agente {
 
             System.out.println("Traza Guardada");
             }
-        } catch (InterruptedException | IOException ex) {
+        } catch (IOException ex) {
             System.err.println("Error al recibir la respuesta o al crear la salida con la traza");
             Logger.getLogger(Kitt.class.getName()).log(Level.SEVERE, null, ex);
         }

@@ -81,8 +81,8 @@ public class Neura extends Agente {
         radar           = new ArrayList(TAM_ENTORNO);
         radanner        = new ArrayList(TAM_RADANNER);
         memoria         = new ArrayList();
-        System.out.println("***********************************************");
-        System.out.println(radar.size() + " Contenido del Radar: "+ radar.toString());
+//        System.out.println("***********************************************");
+//        System.out.println(radar.size() + " Contenido del Radar: "+ radar.toString());
         
        /**
         * Contiene la información del scanner y del radar,
@@ -102,7 +102,11 @@ public class Neura extends Agente {
         movimientos.add("moveSW");
         movimientos.add("moveS");
         movimientos.add("moveSE");
-        
+
+        /**
+         * Contiene las transformaciones necesarias para obtener 
+         * las casillas adyacentes
+         */
         entornoRadanner = new ArrayList();
         entornoRadanner.add(new Casilla(-1,-1));    // NW
         entornoRadanner.add(new Casilla( 0,-1));    // N
@@ -113,6 +117,13 @@ public class Neura extends Agente {
         entornoRadanner.add(new Casilla(-1, 1));    // SW
         entornoRadanner.add(new Casilla( 0, 1));    // S
         entornoRadanner.add(new Casilla( 1, 1));    // SE
+        
+        
+        /**
+         * Al usar ArrayList por sus funciones asociadas, 
+         * nos vemos obligados a incluir valores inicialmente.
+         * Pues los ArrayList se crean vacios
+         */
         
         for(int i=0; i<TAM_RADANNER; i++)
             radanner.add(Float.POSITIVE_INFINITY);
@@ -144,7 +155,7 @@ public class Neura extends Agente {
      */
     public void execute(){   
         // while (miAccion != Accion.logout)
-        System.out.println("[NEURA] Estoy en Execute ");
+//        System.out.println("[NEURA] Estoy en Execute ");
         while (accion != "logout"){
 //            System.out.println("Dentro del While ");
             // procesarMensaje();       GERMÁN
@@ -152,7 +163,7 @@ public class Neura extends Agente {
             actualizarSensores();
 //            System.out.println("Actualizados los sensores ");
             procesarInformacion();
-            System.out.println("Procesando sensores ");
+//            System.out.println("Procesando sensores ");
 //            getSensores();
             
             accion = getAccion();
@@ -163,7 +174,7 @@ public class Neura extends Agente {
 //            System.out.println(" [NEURA] identificador de Kitt: "+ idKITT.toString());
 //            System.out.println(" [NEURA] Accion a realizar: " + accion);
 //            System.out.println(" [NEURA] Contenido del mensaje: "+ mensaje.toString());
-            System.out.println(" [NEURA] Mensaje enviado a Kitt: "+ mensaje_salida.getContent());
+//            System.out.println(" [NEURA] Mensaje enviado a Kitt: "+ mensaje_salida.getContent());
         }
         
     }
@@ -344,15 +355,15 @@ public class Neura extends Agente {
      * 
      */
     private void actualizarSensores(){
-        System.out.println("Dentro de actualizar sensores");
+//        System.out.println("Dentro de actualizar sensores");
         JsonArray datos = new JsonArray();              // ¿Se podria reutilizar datos?
 //        System.out.println("Tras el JsonArray");
         // Ver el contenido de los sensores antes de iniciar la actualización
-         getSensores();
+//         getSensores();
        
         for(int j=0; j<NUM_SENSORES; j++){
             recibirMensaje();
-            System.out.println("[NEURA] Mensaje recibido del servidor: " + mensaje.toString());
+//            System.out.println("[NEURA] Mensaje recibido del servidor: " + mensaje.toString());
 
 
             if(mensaje.toString().contains("scanner")) {
@@ -386,11 +397,11 @@ public class Neura extends Agente {
                 System.out.println("ERROR: " + mensaje.asString());
             }
             
-            getSensores();
+//            getSensores();
        }
        
        // Ver el contenido de los sensores despues de la actualización
-       System.out.println("Sensores Actualizados: ");
+//       System.out.println("Sensores Actualizados: ");
        //getSensores();    
    }
 

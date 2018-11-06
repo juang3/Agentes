@@ -24,10 +24,10 @@ public class NeuraKitt {
         
         try {
             // Identificadores de los agentes
-            AgentID idKitt  = new AgentID("KITT");
-            AgentID idNeura = new AgentID("NEURA");
+            AgentID idKitt  = new AgentID("KITT111");
+            AgentID idNeura = new AgentID("NEURA111");
             
-            AgentID idServidor = new AgentID("Girtab");
+//            AgentID idServidor = new AgentID("Girtab");
             String mapa = "map1";
             
             // Creando conexión con el servidor
@@ -42,9 +42,9 @@ public class NeuraKitt {
             System.out.println("Agentes en pie");
 
             //Kitt KITT = new Kitt(idKitt, idNeura, idServidor, mapa);
-            System.out.println("Agente KITT creado");
+//            System.out.println("Agente KITT creado");
             Neura NEURA = new Neura(idNeura, idKitt);
-            System.out.println("Agente NEURA creado");
+//            System.out.println("Agente NEURA creado");
             
             // Comenzar actividad.
             System.out.println("Despertando a los agentes Kitt y Neura");
