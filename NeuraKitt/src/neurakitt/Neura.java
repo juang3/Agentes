@@ -48,6 +48,8 @@ public class Neura extends Agente {
     ArrayList<Casilla> entornoRadanner;
     private String accion;
     private Casilla casillaActual; 
+    private final int MUCHAS_VECES = 6;
+//    private final int MUCHAS_VECES = Integer.MAX_VALUE;
 
 
     // Destinados al movimiento  
@@ -101,6 +103,7 @@ public class Neura extends Agente {
         movimientos.add("moveS");
         movimientos.add("moveSE");
         
+        entornoRadanner = new ArrayList();
         entornoRadanner.add(new Casilla(-1,-1));    // NW
         entornoRadanner.add(new Casilla( 0,-1));    // N
         entornoRadanner.add(new Casilla( 1,-1));    // NE
@@ -143,23 +146,23 @@ public class Neura extends Agente {
         // while (miAccion != Accion.logout)
         System.out.println("[NEURA] Estoy en Execute ");
         while (accion != "logout"){
-            System.out.println("Dentro del While ");
+//            System.out.println("Dentro del While ");
             // procesarMensaje();       GERMÁN
-            System.out.println("Actualizaré los sensores ");
+//            System.out.println("Actualizaré los sensores ");
             actualizarSensores();
-            System.out.println("Actualizados los sensores ");
+//            System.out.println("Actualizados los sensores ");
             procesarInformacion();
             System.out.println("Procesando sensores ");
-            getSensores();
+//            getSensores();
             
             accion = getAccion();
             mensaje = new JsonObject();
             mensaje.add("accion", accion);
             enviarMensaje(idKITT);
             
-            System.out.println(" [NEURA] identificador de Kitt: "+ idKITT.toString());
-            System.out.println(" [NEURA] Accion a realizar: " + accion);
-            System.out.println(" [NEURA] Contenido del mensaje: "+ mensaje.toString());
+//            System.out.println(" [NEURA] identificador de Kitt: "+ idKITT.toString());
+//            System.out.println(" [NEURA] Accion a realizar: " + accion);
+//            System.out.println(" [NEURA] Contenido del mensaje: "+ mensaje.toString());
             System.out.println(" [NEURA] Mensaje enviado a Kitt: "+ mensaje_salida.getContent());
         }
         
@@ -308,8 +311,10 @@ public class Neura extends Agente {
         int posicion = -1;
        
        
-        if(radanner.get(4) < 0)
+        if(radanner.get(4) < 0 || casillaActual.getContador()>= MUCHAS_VECES){
             posicion = 4;                           // Determina que Kitt ya está en el destino.
+                                                    // Si ha pasado muchas veces por el mismo lugar. 
+        }
         else 
             for(int i=0; i<radanner.size(); i++) {
                 if(radanner.get(i)<0)
@@ -340,8 +345,8 @@ public class Neura extends Agente {
      */
     private void actualizarSensores(){
         System.out.println("Dentro de actualizar sensores");
-        JsonArray datos = new JsonArray();
-        System.out.println("Tras el JsonArray");
+        JsonArray datos = new JsonArray();              // ¿Se podria reutilizar datos?
+//        System.out.println("Tras el JsonArray");
         // Ver el contenido de los sensores antes de iniciar la actualización
          getSensores();
        
@@ -356,16 +361,16 @@ public class Neura extends Agente {
                     scanner.set(i, datos.get(i).asFloat());
             }
             else if(mensaje.toString().contains("radar")) {
-                System.out.println("Dentro del apartado Radar");
+//                System.out.println("Dentro del apartado Radar");
                 datos = mensaje.get("radar").asArray();
-                System.out.println("Volcado del Radar realizado: " + datos.toString());
+//                System.out.println("Volcado del Radar realizado: " + datos.toString());
                 
                 for(int i=0; i<datos.size(); i++){
                     radar.set(i, datos.get(i).asInt());
                     // System.out.println("Radar ["+i+"] = "+ radar.get(i));
                 }
-                System.out.println(" Informando del radar: "+ radar.toString()+ "!!!");
-                getSensores();
+//                System.out.println(" Informando del radar: "+ radar.toString()+ "!!!");
+//                getSensores();
             }
             else if(mensaje.toString().contains("gps")) {
                 int x = mensaje.get("gps").asObject().get("x").asInt(); 
@@ -373,7 +378,9 @@ public class Neura extends Agente {
 
                 casillaActual = comprobarCasillaExiste(x,y);
                 casillaActual.aumentarContador();
+//                casillaActual.aumentarContador(); // Simulando que ya he pasado por la casilla 2 veces.
                 memoria.add(casillaActual);
+                
             }
             else {
                 System.out.println("ERROR: " + mensaje.asString());

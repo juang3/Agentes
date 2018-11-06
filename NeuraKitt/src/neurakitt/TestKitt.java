@@ -49,9 +49,10 @@ public class TestKitt extends Agente {
      * @author Alvaro, German
      */
     public void execute() {
-        login(mapa);  // Enviamos mensaje de logueo e informamos de la respuesta recibida.
+        login();  // Enviamos mensaje de logueo e informamos de la respuesta recibida.
   
         /* Escuchamos a neura para recibir la acción a realizar */
+        int iteraciones = 0 ;
         while (!"logout".equals(accion)){
             
             /* Escuchamos al servidor para recibir la batería */
@@ -72,9 +73,11 @@ public class TestKitt extends Agente {
              * A Neura para saber la acción a realizar.
              * Kitt decide si realizar la acción o realizar refuel.
              */
-            if("logout".equals(accion)){
+            
+//            if("logout".equals(accion)  || iteraciones > 1200){
+              if("logout".equals(accion)){
                 System.out.println("[KITT] Neura ha detectado que hemos llegado al destino ");
-                // accion = "logout";
+                accion = "logout";
                 // break;
             }
             /* No hemos llegado al destino, decido si refuel o accion de Neura */
@@ -120,16 +123,33 @@ public class TestKitt extends Agente {
                 System.out.println("Mensaje enviado pero agente estrellado ");
             else{
                 System.out.println("Respuesta desconocida: "+ mensaje.toString());
-            }    
+            }
+            
+            iteraciones++;
+            System.out.println("\n Iteracion: "+ iteraciones +"\n");
         }
         
+        /** 
+         *  @Observación:
+         *      Tras enviar al servidor el mensaje de logout,
+         *  el servidor enviar los mensajes predeterminados y además
+         *  un mensaje con el camino realizado.
+         * 
+         *  @Conclusión:
+         *      Como Kitt recibe la información del sensor batería, 
+         *  en este momento ya no tiene interés saberlo.
+         *  Por tanto se ignora el mensaje para obtener la traza.
+         */
+        System.out.println(" Ha iterado: "+ iteraciones + " veces. ");
+        recibirMensaje();
         getTraza();
+
     }
     
     /**
      * @author Alvaro, Juan Germán
      */
-    private boolean login(String mapa) {
+    private boolean login() {
         
         
         /* Creamos el mensaje */
@@ -196,14 +216,16 @@ public class TestKitt extends Agente {
             System.out.println("Mensaje recibido, del servidor, tras el logout: " + mensaje.toString());
             
             /* Cuando la respuesta es OK, guardamos la traza */
-            if (mensaje.get("result").toString().contains("OK")) {
+            if (mensaje.toString().contains("trace")) {
                 System.out.println("Recibiendo traza");
                 JsonArray ja = mensaje.get("trace").asArray();
             byte data[] = new byte [ja.size()];
             for (int i = 0 ; i < data.length; i++) {
                 data[i] = (byte) ja.get(i).asInt();
             }
-            FileOutputStream fos = new FileOutputStream("mitraza.png");
+            String nombre_fichero = "../" + mapa + ".png";
+            FileOutputStream fos = new FileOutputStream(nombre_fichero);
+//            FileOutputStream fos = new FileOutputStream("mitraza.png");
             fos.write(data);
             fos.close();
 
