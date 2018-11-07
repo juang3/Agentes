@@ -27,6 +27,8 @@ public class TestKitt extends Agente {
     private String clave ;
     private float bateria ;
     private String accion;
+    private int iteraciones ;
+    private final String pathAnilloExterior;
     
     
     /**
@@ -34,12 +36,20 @@ public class TestKitt extends Agente {
      * @param aid
      * @throws Exception 
      */
-    public TestKitt(AgentID aid, AgentID idNeura, String mapa) throws Exception {
+    public TestKitt(AgentID aid, AgentID idNeura, String mapa, boolean anilloExterior ) throws Exception {
         super(aid);
         idServidor = new AgentID("Girtab");
         nombreNeura = idNeura.getLocalName();
         this.mapa = mapa;
         accion = "";
+        
+        // Variables de control
+        iteraciones = 0 ;
+        if(anilloExterior)
+            pathAnilloExterior = "_anillo_exterior_";
+        else
+            pathAnilloExterior = "_";
+        
         
 //        System.out.println("Agente "+aid.getLocalName()+" creandose");
     }
@@ -52,7 +62,7 @@ public class TestKitt extends Agente {
         login();  // Enviamos mensaje de logueo e informamos de la respuesta recibida.
         
         /* Escuchamos a neura para recibir la acción a realizar */
-        int iteraciones = 0 ;
+
         while (!"logout".equals(accion)){
             
             
@@ -239,7 +249,7 @@ public class TestKitt extends Agente {
             if(exito){
                 /* Recibimos la respuesta del servidor */
                 recibirMensaje();
-                nombre_fichero= "../" + mapa + ".png";
+                nombre_fichero= "../" + mapa + pathAnilloExterior + iteraciones + ".png";
             }
             else
                 nombre_fichero= "../Error_traza_anterior_" + mapa + ".png";
