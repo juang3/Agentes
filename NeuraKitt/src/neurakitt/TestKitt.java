@@ -28,7 +28,7 @@ public class TestKitt extends Agente {
     private float bateria ;
     private String accion;
     private int iteraciones ;
-    private final String pathAnilloExterior;
+    private final String anilloExterior;
     
     
     /**
@@ -46,9 +46,9 @@ public class TestKitt extends Agente {
         // Variables de control
         iteraciones = 0 ;
         if(anilloExterior)
-            pathAnilloExterior = "_anillo_exterior_";
+            this.anilloExterior = "_anillo_exterior_";
         else
-            pathAnilloExterior = "_";
+            this.anilloExterior = "_";
         
         
 //        System.out.println("Agente "+aid.getLocalName()+" creandose");
@@ -249,7 +249,7 @@ public class TestKitt extends Agente {
             if(exito){
                 /* Recibimos la respuesta del servidor */
                 recibirMensaje();
-                nombre_fichero= "../" + mapa + pathAnilloExterior + iteraciones + ".png";
+                nombre_fichero= "../" + mapa + this.anilloExterior + iteraciones + ".png";
             }
             else
                 nombre_fichero= "../Error_traza_anterior_" + mapa + ".png";
