@@ -59,7 +59,7 @@ public class TestKitt extends Agente {
             /* Escuchamos al servidor para recibir la batería */
             
             recibirMensaje();
-            System.out.println("Recibimos bateria del servidor: "+ mensaje_respuesta.getContent());
+            System.out.println("Recibimos bateria del servidor: "+ mensaje.toString());
             bateria = mensaje.get("battery").asFloat() ;
             
             /* Escuchamos a neura para recibir la acción a realizar */
@@ -81,7 +81,6 @@ public class TestKitt extends Agente {
                     mensaje = new JsonObject();
                     mensaje.add("command", "refuel");
                     mensaje.add("key", clave);
-                    mensaje_respuesta.setContent(mensaje.asString());
             
                     enviarMensaje(idServidor);
                                         
@@ -142,23 +141,20 @@ public class TestKitt extends Agente {
         
         /* Recibimos la respuesta del servidor */
         recibirMensaje();
-        System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
+        System.out.println("Respuesta: "+ mensaje.toString());
 
         
 //        if (mensaje.get("trace").isTrue()) {
         if (mensaje.toString().contains("trace")){
             /* Hacemos logout */
             System.out.println("Llamamos a logout");
-            // logout();
+//            logout();
             System.out.println("Despues del logout");
-            
-            /* Preferentemente prefiero ignorar el mensaje */
-            ignorarMensaje();
-            
+            recibirMensaje();
         }
         
         recibirMensaje();
-        System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
+        System.out.println("Respuesta: "+ mensaje.toString());
         
         return mensaje ;
         
@@ -181,8 +177,7 @@ public class TestKitt extends Agente {
         /* Recibimos la respuesta del servidor y si el resultado es OK guardamos la traza */
         
         try {
-            mensaje_respuesta = this.receiveACLMessage();
-            mensaje = Json.parse(mensaje_respuesta.getContent()).asObject();
+            recibirMensaje();
             
             if (mensaje.get("result").asString().equals("OK")) {
 
@@ -199,7 +194,7 @@ public class TestKitt extends Agente {
             System.out.println("Traza Guardada");
         }
 
-        } catch (InterruptedException | IOException ex) {
+        } catch (IOException ex) {
             System.err.println("Error al recibir la respuesta o al crear la salida con la traza");
             Logger.getLogger(Kitt.class.getName()).log(Level.SEVERE, null, ex);
         }

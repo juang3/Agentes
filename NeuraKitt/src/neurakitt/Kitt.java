@@ -23,121 +23,118 @@ public class Kitt extends Agente {
      * Atributos de KITT
      */
     private final AgentID idServidor;
+    private final String NEURA;
     private String clave;
     private float bateria;
+    private String mapa;
+    private String dir_traza;
+    private String accion;
     
         
     /**
      * @author Alvaro
      * @param aid
+     * @param neura
+     * @param mapa
      * @throws Exception 
      * 
      * @author Alejandro
      * @FechaModificacion 04/11/2018
      * @Motivo inicialización de variables en constructor en lugar de en la 
      * definición.
+     * 
+     * @author Germán
+     * @FechaModificacion 05/11/2018
+     * @Motivo parametrización del constructor con el nombre del agente NUERA 
+     *  y el nombre del mapa a explorar.
      */
-    public Kitt(AgentID aid) throws Exception {
+    public Kitt(AgentID aid, String neura, String mapa) throws Exception {
         super(aid);
         
         idServidor = new AgentID("Girtab");
         clave = "";
         bateria = 0;
+        this.mapa = mapa;
+        this.NEURA = neura;
+        dir_traza = "./trazas/";
+        accion = "";
+    }
+    
+    
+    
+    private void test() {
+        for(int i=0; i<15; i++){
+            mensaje = new JsonObject();
+            mensaje.add("command", "moveSW");
+            mensaje.add("key", clave);
+            enviarMensaje(idServidor);
+            
+            recibirMensaje();
+            System.out.println("Respuesta: " + mensaje.toString());
+            
+            
+            if(mensaje.get("result").asString().contains("OK")) {
+                recibirMensaje();
+                System.out.println("Batería: " + mensaje.get("battery").asFloat());
+                bateria = mensaje.get("battery").asFloat() ;
+            }
+            else {
+                System.out.println("");
+            }
+        }
     }
     
     
     @Override
     /**
+     * Comportamiento del agente NEURA
+     * 
+     * inciarSesion();
+     * 
+     * MIENTRAS <accion != logout>
+     *      recibirMensajes(servidor);
+     *      recibirMensajes(NEURA);
+     *      if (bateríaBaja)
+     *         hacerRefuel();
+     *      else
+     *         hacerAccionDadaPorNeura();
+     *      enviarMensaje(al servidor);
+     *      recibirMensaje(servidor)        // Comprobación {OK, BAD...}
+     *          
+     * cerrarSesion();
+     * 
      * @author Alvaro
      * @author Alejandro
+     * 
+     * 
+     * 
      */
     public void execute() {
-        
-        System.out.println("Hola, soy KITT");
-        
         login();
-        System.out.println("Realizado login.");
+        System.out.println("[KITT] Iniciada sesión.");
         
-        recibirMensaje();
-        System.out.println("Batería: " + mensaje.get("battery").asFloat());
-        bateria = mensaje.get("battery").asFloat() ;
+        while(!accion.equals("logout")) {
+            recibirMensaje();
+            System.out.println("[KITT] Batería: " + mensaje.get("battery").asFloat());
+            bateria = mensaje.get("battery").asFloat() ;
+            
+            recibirMensaje();
+            System.out.println("[KITT] Mensaje recibido: " + mensaje.toString());
+            if(bateria > 1f)
+                accion = mensaje.get("accion").asString();
+            else
+                accion = "refuel";
+            
+            mensaje = new JsonObject();
+            mensaje.add("command", accion);
+            mensaje.add("key", clave);
+            enviarMensaje(idServidor);
+            System.out.println("[KITT] Mensaje enviado: " + mensaje.toString());
+            recibirMensaje();
+        }
         
         logout();
-        System.out.println("Realizado logout.");
-
-        
-//        mensaje = login();  // Recibimos el mensaje al logearnos
-//        
-//        //System.out.println("respuesta = " + mensaje.get("trace").toString());
-//        System.out.println("Logeado correctamente");
-//        //System.out.println("Respuesta: "+ mensaje_respuesta.getContent());
-//
-//        /* Si nos hemos logeado correctamente, guardamos la clave, recibimos del servidor la batería y determinamos la acción a llevar a cabo*/
-//        
-//        if ( !mensaje.get("result").toString().equals("BAD_MAP") && !mensaje.get("result").toString().equals("BAD_PROTOCOL") ) {
-//            clave = mensaje.get("result").toString();
-//            System.out.println("Clave almacenada correctamente");
-//            
-//            /* Escuchamos al servidor para recibir la batería */
-//            
-//            recibirMensaje();
-//            System.out.println("Recibimos bateria del servidor: " + mensaje_respuesta.getContent());
-//            bateria = mensaje.get("battery").asFloat() ;
-//            
-//            /* Escuchamos a neura para recibir la acción a realizar */
-//            
-//            recibirMensaje();
-//            System.out.println("Recibimos acción de neura: " + mensaje_respuesta.getContent());
-//                
-//            /* 
-//               Mientras que la acción a realizar no sea la de hacer logout, 
-//               determinamos qué acción es, la llevamos a cabo y volvemos a 
-//               escuchar a neura (TO DO - INCOMPLETO)
-//            */
-//            
-//            while ( !mensaje.get("accion").equals("logout") ) {
-//
-//                mensaje = new JsonObject();
-//                /* Si no me queda batería hago refuel */
-//                
-//                if (bateria == 1) {
-//                    mensaje.add("command", "refuel");                                                          
-//                }
-//                
-//                /* En caso contrario le envío al servidor la acción proporcionada por NEURA */
-//                
-//                else {
-//                    String accion = mensaje.get("accion").toString() ;                    
-//                    mensaje.add("command", accion);                               
-//                }
-//                
-//                mensaje.add("key", clave);
-//                mensaje_respuesta.setContent(mensaje.toString());
-//                enviarMensaje(idServidor);
-//                
-//                /* Recibimos la respuesta del servidor */
-//                                        
-//                if (!mensaje.get("result").toString().equals("OK"))
-//                    System.err.println("Error al realizar la acción");
-//                           
-//                /* El servidor vuelve a enviar las percepciones por lo que tenemos que recibir la batería */
-//                recibirMensaje();
-//                System.out.println("Recibimos bateria del servidor: " + mensaje_respuesta.getContent());
-//                bateria = mensaje.get("battery").asFloat() ;
-//                
-//                /* Escuchamos de nuevo a neura */
-//                
-//                recibirMensaje(); 
-//                System.out.println("Recibimos acción de neura: " + mensaje_respuesta.getContent());
-//                
-//            }
-//  
-//            /* Si hemos recibido un logout como acción de neura se lo enviamos al servidor */
-//            logout();          
-//            
-//        }else{
-//            System.out.println("Logueado incorrectamente");
-//        }
+        System.out.println("[KITT] Sesión cerrada.");
     }
     
     
@@ -150,40 +147,37 @@ public class Kitt extends Agente {
      *  almacenamiento de la clave de sesión desde el método execute() a aquí.
      *  Cambiado método a void
      */
-    private void login() {
-        System.out.println("En el login");
-        
-        /* Creamos el mensaje */
+    private void login() {        
         mensaje = new JsonObject();
         mensaje.add("command",  "login");
-        mensaje.add("world",    "map1");
-        mensaje.add("battery",  "KITT");
-        // mensaje.add("radar",    "neura");
-        // mensaje.add("scanner",  "neura");
-        // mensaje.add("gps",      "neura");        
-
+        mensaje.add("world",    mapa);
+        mensaje.add("battery",  this.getAid().getLocalName());
+        mensaje.add("scanner",  NEURA);
+        mensaje.add("radar",    NEURA);
+        mensaje.add("gps",      NEURA);        
          
-        System.out.println("Enviado: " + mensaje.toString());
+        System.out.println("[LOGIN] Enviado: " + mensaje.toString());
         enviarMensaje(idServidor);
                 
-        /* Recibimos la respuesta del servidor */
         recibirMensaje();
-        System.out.println("Respuesta: " + mensaje.toString());
+        System.out.println("[LOGIN] Respuesta: " + mensaje.toString());
 
         /**
          * En lugar de hacer logout y login para manejar sesiones anteriores mal
          * acabadas (lo que implica más mensajes encolados y atrasados), simple-
          * mente ignoro la traza anterior y vuelvo a escuchar al servidor,
-         * recibiendo la clave de la sesión actual y almacenandola.
+         * recibiendo la clave de la sesión actual y almacenándola.
+         * 
+         * Álex
          */
         if (mensaje.toString().contains("trace")) {
-            System.out.println("Traza en el login. Reiniciando...");
+            System.out.println("[WARNING] Traza en el login. Reiniciando...");
             recibirMensaje();
-            System.out.println("Respuesta: " + mensaje.toString());
+            System.out.println("[LOGIN] Respuesta: " + mensaje.toString());
         }
         
         clave = mensaje.get("result").asString();
-        System.out.println("Clave: " + clave);
+        System.out.println("[LOGIN] Clave: " + clave);
     }
     
     
@@ -195,27 +189,23 @@ public class Kitt extends Agente {
      * @Motivo corregido error en la recepción de la traza
      */
     private void logout() {
+//        mensaje = new JsonObject();
+//        mensaje.add("command", "logout");
+//        mensaje.add("key", clave);
+//        
+//        System.out.println("[LOGOUT] Enviado: " + mensaje.toString());
+//        enviarMensaje(idServidor);
 
-        System.out.println("En el logout");
-        
-        /* Creamos el mensaje */
-        mensaje = new JsonObject();
-        mensaje.add("command", "logout");
-        mensaje.add("key", clave);
-        
-        System.out.println("Enviado: " + mensaje.toString());
-        enviarMensaje(idServidor);
-
-        /* Recibimos la respuesta del servidor y si el resultado es OK guardamos la traza */
+        /* Recibimos la respuesta del servidor y si el resultado es OK guardamos 
+           la traza */
         
         recibirMensaje();
-        System.out.println("Respuesta: " + mensaje.toString());
+        System.out.println("[LOGOUT] Respuesta: " + mensaje.toString());
         
-        if (mensaje.get("result").asString() == "OK") {
-            
+        if (mensaje.get("result").asString().contains("OK")) {
+//            recibirMensaje();
             recibirMensaje();
-            System.out.println("Traza: " + mensaje.toString());
-
+            System.out.println("[LOGOUT] Traza: " + mensaje.toString());
             
             try {
                 JsonArray ja = mensaje.get("trace").asArray();
@@ -224,16 +214,16 @@ public class Kitt extends Agente {
                 for(int i=0 ; i<data.length; i++)
                     data[i] = (byte) ja.get(i).asInt();
                 
-                FileOutputStream fos = new FileOutputStream("./mitraza.png");
+                String ruta = dir_traza + mapa + ".png";
+                FileOutputStream fos = new FileOutputStream(ruta);
                 fos.write(data);
                 fos.close();
-                System.out.println("Traza Guardada");
+                System.out.println("[LOGOUT] Traza Guardada");
 
             } catch (IOException ex) {
-                System.err.println("Error procesando traza");
+                System.err.println("[LOGOUT] Error procesando traza");
                 Logger.getLogger(Kitt.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
-
 }

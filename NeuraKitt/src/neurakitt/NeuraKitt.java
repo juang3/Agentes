@@ -24,21 +24,25 @@ public class NeuraKitt {
         
         try {
             // Identificadores de los agentes
-            AgentID idKitt  = new AgentID("KITT");
-            AgentID idNeura = new AgentID("NEURA");
+            AgentID idKITT  = new AgentID("KITT_B");
+            AgentID idNEURA = new AgentID("NEURA_B");
+            
+            // Mapa a explorar
+            String mapa = "map1";
             
             // Creando conexión con el servidor
-            AgentsConnection.connect("isg2.ugr.es", 6000, "Girtab", "Geminis", "France", false);
+            AgentsConnection.connect("isg2.ugr.es", 6000, "Girtab", "Geminis",
+                                      "France", false);
             System.out.println("Conectado a isg2.ugr.es");
             
             
-            Kitt KITT   = new Kitt(idKitt);
+            Kitt KITT   = new Kitt(idKITT, idNEURA.getLocalName(), mapa);
             System.out.println("Agente KITT creado");
-            // Neura NEURA = new Neura(idNeura, idKitt);
-            // System.out.println("Agente NEURA creado");
+            Neura NEURA = new Neura(idNEURA, idKITT);
+            System.out.println("Agente NEURA creado");
             
             // Comenzar actividad.
-            // NEURA.start();
+            NEURA.start();
             KITT.start();
             
         } catch (Exception ex) {

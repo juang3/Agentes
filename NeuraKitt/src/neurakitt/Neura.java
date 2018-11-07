@@ -40,18 +40,12 @@ public class Neura extends Agente {
     private ArrayList<Integer>  radar;
     private ArrayList<Float>    radanner;
     // Destinados a memoria    
-    private ArrayList<Casilla> memoria;
-    // private int gps[]   = new int[3];                   // [x, y, nº veces]
-    
-    /**************************************************************************/
-    //    private ArrayList caminado;      // ¿TIPO?
-    /**************************************************************************/
-
+    private ArrayList<Casilla>  memoria;
     // Destinados al movimiento  
     /**************************************************************************/
-    // private Accion miAccion;                 A USAR MÁS TARDE
+    // private Accion miAccion;                 A USAR MÁS TARDE 
     /**************************************************************************/
-    private ArrayList<String> movimientos; 
+    private ArrayList<String>   movimientos; 
     private String accion;
     // Identificador del agente KITT
     private final AgentID idKITT;    
@@ -93,23 +87,14 @@ public class Neura extends Agente {
         movimientos.add("moveS");
         movimientos.add("moveSE");
         
+        
         for(int i=0; i<TAM_RADANNER; i++)
             radanner.add(Float.POSITIVE_INFINITY);
-        
-        /**
-        for(int i=0; i< TAM_ENTORNO; i++){
-        //   scanner[i] = (float) Math.random()*70;
-           scanner[i] = 0;
-        //   radar[i] = (int) Math.floor(Math.random()*3);
-           radar[i] = 0;
+
+        for(int i=0; i<TAM_ENTORNO; i++){
+            scanner.add(Float.MAX_VALUE);
+            radar.add(Integer.MAX_VALUE);
         }
-        // gps[0]=-1;
-        // gps[1]=-1;
-        // gps[2]= 0;  
-        
-        for(int i=0; i< TAM_RADANNER; i++)
-           radanner[i] = Float.POSITIVE_INFINITY;
-        **/  
     }
     
     
@@ -131,21 +116,17 @@ public class Neura extends Agente {
      * @HU 5.2 y 5.3
      */
     public void execute(){   
-        // while (miAccion != Accion.logout)
         while (accion != "logout"){
-            // procesarMensaje();       GERMÁN
-            actualizarSensores();
+            actualizarSensores();           // Recibe los mensajes y los procesa
             procesarInformacion();
-            getSensores();
-            
+            getSensores();          /* Comprobar estado de los sensores */
+
             accion = getAccion();
             mensaje = new JsonObject();
             mensaje.add("accion", accion);
+            System.out.println("[NEURA] Accion a realizar: " + accion);
             enviarMensaje(this.idKITT);
-            
-            System.out.println(" Accion a realizar: " + accion);
         }
-        
     }
     
     
@@ -189,7 +170,7 @@ public class Neura extends Agente {
      */
    
     /**
-     * Transforma la informacion del scanner para mejor gestión de ésta.
+     * Transforma la informacion interna scanner para mejorar la toma de decisiones.
      * 
      * @author  Juan Germán Gómez Gómez.
      * @note    La representación: 0 libre, 1 obstáculo, 2 destino
@@ -201,14 +182,11 @@ public class Neura extends Agente {
      * @FechaModificación 01/11/2018
      * @Motivo Nombre más significativo. Cambio de ProcesarRadarYEscanner() a
      * procesarInformacion()
-     * 
-     * 
      */
     private void procesarInformacion(){
         int traslacion;
         
         for(int i=0; i<scanner.size(); i++){
-            // scanner[i] = (1 - radar[i])*scanner[i];
             traslacion = 1 - radar.get(i);
             
             if(traslacion < 0)                  // Es celda destino
@@ -236,7 +214,7 @@ public class Neura extends Agente {
     * @author Alejandro
     * @FechaModificación 01/11/2018
     * @Motivo Nombre más significativo. Cambio Radanner() por actualizarRadanner()
-    *   Cambiada accesibilidad a privada.
+    *  Cambiada accesibilidad a privada.
     */
     private void actualizarRadanner() {
         radanner.set(0, scanner.get(6));
@@ -292,11 +270,11 @@ public class Neura extends Agente {
         if(radanner.get(4) < 0)
             posicion = 4;
         else 
-            for(int i=0; i<radanner.size(); i++) {
+            for(int i=0; i<radanner.size() && radanner.get(i)<0; i++) {
                 if(radanner.get(i)<0)
                     posicion = i;
                 else
-                    if(radanner.get(i)<minimo && radanner.get(i) != 0.0) {
+                    if(radanner.get(i)<minimo && radanner.get(i)!=0.0 && i!=4) {
                         minimo = radanner.get(i);
                         posicion = i;
                     }
@@ -318,13 +296,11 @@ public class Neura extends Agente {
      */
     private void actualizarSensores(){
         JsonArray datos = new JsonArray();
-        
-        getSensores();
-       
+               
         for(int j=0; j<NUM_SENSORES; j++){
             recibirMensaje();
             
-            System.out.println("Mensaje recibido " + mensaje_respuesta.getContent());
+            System.out.println("[NEURA] Mensaje recibido " + mensaje.toString());
 
             if(mensaje.toString().contains("scanner")) {
                 datos = mensaje.get("scanner").asArray();
@@ -345,10 +321,9 @@ public class Neura extends Agente {
                 memoria.add(actual);
             }
             else {
-                System.out.println("ERROR: " + mensaje.asString());
+                System.out.println("[ERROR] " + mensaje.asString());
             }
         }
-        getSensores();       
     }
    
     
@@ -392,6 +367,8 @@ public class Neura extends Agente {
      * está ahora no sé lo que hace visto desde otra clase a no ser que mire el código.
      * Con "Acción" no sé si devuelve la acción, la toma, si es una variabe o qué.
      * Cambio el nombre del método a getAccion()
+     * 
+     * @see decidirAccion()
      */
     public String getAccion(){
         return movimientos.get(decidirAccion());
@@ -412,17 +389,9 @@ public class Neura extends Agente {
      * @Motivo reemplazo de bucles for por funciones propias del lenguaje
      */
     public void getSensores(){
-        
-        System.out.print("\n Radar: ");
-        radar.toString();
-  
-        System.out.print("\n Scanner: ");
-        scanner.toString();
-        
-        System.out.println("\n Radanner: ");
-        radanner.toString();
-        
-        System.out.println("\n Posición (GPS): ");
-        memoria.toString();       
+        System.out.println("[NEURA] Radar: "            + radar.toString());
+        System.out.println("[NEURA] Scanner: "          + scanner.toString());
+        System.out.println("[NEURA] Radanner: "         + radanner.toString());
+        System.out.println("[NEURA] Posición (GPS): "   + memoria.toString());
     }
 }
