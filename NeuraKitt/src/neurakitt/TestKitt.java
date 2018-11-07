@@ -41,7 +41,7 @@ public class TestKitt extends Agente {
         this.mapa = mapa;
         accion = "";
         
-        System.out.println("Agente Kitt creandose");
+//        System.out.println("Agente "+aid.getLocalName()+" creandose");
     }
     
     @Override
@@ -50,20 +50,33 @@ public class TestKitt extends Agente {
      */
     public void execute() {
         login();  // Enviamos mensaje de logueo e informamos de la respuesta recibida.
-  
+        
         /* Escuchamos a neura para recibir la acción a realizar */
         int iteraciones = 0 ;
         while (!"logout".equals(accion)){
             
-            /* Escuchamos al servidor para recibir la batería */
-            recibirMensaje();
-            bateria = mensaje.get("battery").asFloat() ;
+            
+            // Evita el interbloqueo al recibir mensajes de distintos agentes con distintas claves.
+            for(int i=0; i< 2; i++){
+                recibirMensaje();
+                if(mensaje.toString().contains("battery"))
+                    bateria = mensaje.get("battery").asFloat();
+                else if(mensaje.toString().contains("accion"))
+                    accion = mensaje.get("accion").asString();
+                else
+                    System.out.println("Mensaje inesperado: "+ mensaje.toString());
+            }
+            
 //            System.out.println("[KITT] Recibimos bateria del servidor: "+ mensaje.toString());
             
-            /* Escuchamos la decisión de Neura */
+/*
+            // Escuchamos al servidor para recibir la batería 
+            recibirMensaje();
+            bateria = mensaje.get("battery").asFloat();
+            // Escuchamos la decisión de Neura 
             recibirMensaje();
             accion = mensaje.get("accion").asString();
-            
+ */           
 //            System.out.println("[KITT] Neura me ha enviado: "+ mensaje.toString());
 //            System.out.println("[KITT] Neura me ha enviado: "+ accion);
             
@@ -91,10 +104,12 @@ public class TestKitt extends Agente {
             }
             
             // Creando el mensaje a enviar al servidor
+//            System.out.println("Crear mensaje para el servidor");
             mensaje = new JsonObject();
             mensaje.add("command", accion); 
             mensaje.add("key", clave);
                 
+//            System.out.println("Enviando mensaje");
             // Se envia el mensaje al servidor
             enviarMensaje(idServidor);
                 
@@ -111,8 +126,9 @@ public class TestKitt extends Agente {
             
             recibirMensaje();
             /* Recibimos la respuesta del servidor */
-            if     (mensaje.toString().contains("OK"))
-                System.out.println("Mensaje enviado correctamente ");
+            if     (mensaje.toString().contains("OK")){
+//                System.out.println("\t Mensaje enviado correctamente ");
+            }
             else if(mensaje.toString().contains("BAD_KEY"))
                 System.out.println("Mensaje enviado con clave erronea ");
             else if(mensaje.toString().contains("BAD_COMMAND"))
@@ -142,7 +158,7 @@ public class TestKitt extends Agente {
          */
         System.out.println(" Ha iterado: "+ iteraciones + " veces. ");
         recibirMensaje();
-        getTraza();
+        getTraza(true);
 
     }
     
@@ -167,6 +183,7 @@ public class TestKitt extends Agente {
         
         /* Recibimos la respuesta del servidor */
         recibirMensaje();
+
 //       System.out.println("[KITT] Respuesta del servidor por el login: "+ mensaje.toString());
 
         /** Las posibles respuesas son: trace, password, BAD_MAP, BAD_PROTOCOL
@@ -179,6 +196,7 @@ public class TestKitt extends Agente {
             /* Preferentemente prefiero ignorar el mensaje
              * y volver a escuchar al servidor para recibir la clave
              */
+            getTraza(false);
             recibirMensaje();
 //            System.out.println("[KITT] La nueva respuesta es: " + mensaje.toString());
             /* Preferentemente prefiero ignorar el mensaje */
@@ -211,11 +229,21 @@ public class TestKitt extends Agente {
     
     /**
      * @author Alvaro, German
+     * @param exito 
+     *  Cuando exito es true, crea una imagen cuyo nombre es el nombre del mapa
+     *  Cuando exito es false, crea una imagen cuyo nombre refleja que es una traza fallida
      */
-    private void getTraza() {
+    private void getTraza(boolean exito) {
         try {
-            /* Recibimos la respuesta del servidor */
-            recibirMensaje();
+            String nombre_fichero;
+            if(exito){
+                /* Recibimos la respuesta del servidor */
+                recibirMensaje();
+                nombre_fichero= "../" + mapa + ".png";
+            }
+            else
+                nombre_fichero= "../Error_traza_anterior_" + mapa + ".png";
+            
 //            System.out.println("Mensaje recibido, del servidor, tras el logout: " + mensaje.toString());
             
             /* Cuando la respuesta es OK, guardamos la traza */
@@ -226,13 +254,13 @@ public class TestKitt extends Agente {
             for (int i = 0 ; i < data.length; i++) {
                 data[i] = (byte) ja.get(i).asInt();
             }
-            String nombre_fichero = "../" + mapa + ".png";
+
             FileOutputStream fos = new FileOutputStream(nombre_fichero);
 //            FileOutputStream fos = new FileOutputStream("mitraza.png");
             fos.write(data);
             fos.close();
 
-            System.out.println("Traza Guardada");
+            System.out.println("Traza Guardada en "+ nombre_fichero);
             }
         } catch (IOException ex) {
             System.err.println("Error al recibir la respuesta o al crear la salida con la traza");
