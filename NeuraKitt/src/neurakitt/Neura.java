@@ -49,6 +49,7 @@ public class Neura extends Agente {
     private String accion;
     private Casilla casillaActual; 
     private final int MUCHAS_VECES = 6;
+    private final boolean anilloExterior;
 //    private final int MUCHAS_VECES = Integer.MAX_VALUE;
 
 
@@ -74,7 +75,7 @@ public class Neura extends Agente {
      * @Motivo  inclusión de la clase Casilla. Movidas TODAS las inicializaciones
      *  al constructor, en lugar de en la definición de los miembros.
      */
-    public Neura(AgentID aID, AgentID idKITT) throws Exception {
+    public Neura(AgentID aID, AgentID idKITT, boolean anilloExterior) throws Exception {
         super(aID);
         
         scanner         = new ArrayList(TAM_ENTORNO);
@@ -133,6 +134,8 @@ public class Neura extends Agente {
         
         for(int i=0; i<TAM_ENTORNO; i++)
             scanner.add(Float.POSITIVE_INFINITY); 
+        
+        this.anilloExterior = anilloExterior;
     }
     
     
@@ -156,7 +159,7 @@ public class Neura extends Agente {
     public void execute(){   
         // while (miAccion != Accion.logout)
 //        System.out.println("[NEURA] Estoy en Execute ");
-        while (accion != "logout"){
+        while (!"logout".equals(accion)){
 //            System.out.println("Dentro del While ");
             // procesarMensaje();       GERMÁN
 //            System.out.println("Actualizaré los sensores ");
@@ -322,10 +325,8 @@ public class Neura extends Agente {
         int posicion = -1;
        
        
-        if(radanner.get(4) < 0 || casillaActual.getContador()>= MUCHAS_VECES){
-            posicion = 4;                           // Determina que Kitt ya está en el destino.
-                                                    // Si ha pasado muchas veces por el mismo lugar. 
-        }
+        if(radanner.get(4) < 0)
+            posicion = 4;
         else 
             for(int i=0; i<radanner.size(); i++) {
                 if(radanner.get(i)<0)
@@ -440,7 +441,7 @@ public class Neura extends Agente {
      * @param y     Coordenada de ordenada
      * @return Las veces que ha pasado por dicha casilla
      */
-    private int BuscarEnMemoria(int x, int y){
+    private int buscarEnMemoria(int x, int y){
         int contador = 1;
         for(Casilla i : memoria)
             if(i.X==x && i.Y==y)
@@ -460,16 +461,128 @@ public class Neura extends Agente {
         
         for(int i=0 ; i< radanner.size(); i++){
             if(radanner.get(i)>0){
-                factorPonderador = BuscarEnMemoria(
+                factorPonderador = comprobarCasillaExiste(
                     casillaActual.X + entornoRadanner.get(i).X,
-                    casillaActual.Y + entornoRadanner.get(i).Y);
+                    casillaActual.Y + entornoRadanner.get(i).Y)
+                    .getContador();
+                
                 if(factorPonderador>1){
                     radanner.set(i, radanner.get(i)*factorPonderador);
                 }
+                
+                if(anilloExterior) ponderadorDelEntornoLejano(i, factorPonderador);
             }
         }
     }
      
+    /**
+     * 
+     * @Reflexión:
+     * @Pregunta: ¿En qué podría servir saber la información de las celdas 
+     * que no son adyacentes al agente?
+     * 
+     * @Respuesta: Podrián servir para evitar aproximarnos a una pared
+     * pues necesariamente habrá que cambiar el sentido en el proximo movimiento
+     * 
+     * @Pregunta: ¿Sería mejor cambiar el sentido antes de acercarnos a la pared
+     * Si sabemos que más allá de esta no podemos pasar?
+     * 
+     * @Respuesta: Si, 
+     * se podía incluir una ponderacíon para ver esa decisión menos atractiva.
+     * -Def.- 
+     *      Defino muro sin huecos a la consecución de al menos tres obstáculos.
+     *      Defino muro con huecos a la consecución de dos obstáculos.
+     * 
+     *  Ejemplo con radar:
+     *      1   1   1   0   0
+     *      1   0   0   0   1
+     *      0   1   0   0   1
+     *      0   0   0   0   1
+     *      0   0   0   1   0
+     * 
+     *  Se puede ver que moveNW no parece buena acción  (Muro sin hueco 0,1,5)
+     *  Se puede ver que moveE  no parece buena acción  (Muro sin hueco 9,14,19)
+     *  Se puede ver que moveS  si parece buena acción  (No hay muro)
+     *  Se puede ver que moveSE si parece buena acción  (Hay muro con hueco)
+     *  Se puede ver que moveN  si parece buena acción  (Hay muro con hueco)
+     *  Se puede ver que moveNE si parece buena acción  (No hay muro)
+     *  Se puede ver que moveSW si parece buena acción  (No hay muro)
+     */
+     
+    /**
+     * Pondera una posición concreta del radanner en función de si hay muro 
+     * frente a dicha posición.
+     * 
+     * @author; Germán
+     * @param posicionIesimaDelRadanner
+     * 
+     */
+    private void ponderadorDelEntornoLejano(int posicionIesimaDelRadanner, int contadorCasilla){
+        int i = posicionIesimaDelRadanner;
+        int factorPonderador = contadorCasilla;
+        if(muro(i)){
+            radanner.set(i, factorPonderador*radanner.get(i));
+                
+         } 
+     }
+    
+    /**
+     * @author: Germán
+     * Muro mira si hay o no obtáculo en frente de la casilla adyacente al agente
+     * @param posicionIesimaDelRadanner
+     * @return Devuelve si hay o no muro enfrente de la casilla adyacente al agente 
+     * 
+     * @Nota:
+     *  Hay muro al NOeste si las casillas  0,  1,  5 del radar tienen un 1.
+     *  Hay muro al Norte  si las casillas  1,  2,  3 del radar tienen un 1.
+     *  Hay muro al NEste  si las casillas  3,  4,  9 del radar tienen un 1.
+     *  Hay muro al Este   si las casillas  9, 14, 19 del radar tienen un 1.
+     *  Hay muro al SEste  si las casillas 19, 23, 24 del radar tienen un 1.
+     *  Hay muro al Sur    si las casillas 21, 22, 23 del radar tienen un 1.
+     *  Hay muro al SOeste si las casillas 15, 20, 21 del radar tienen un 1.
+     *  Hay muro al Oeste  si las casillas  5, 10, 15 del radar tienen un 1.
+     * 
+     */
+    private boolean muro(int posicionIesimaDelRadanner){
+        boolean hayMuro = false;
+        
+        switch(posicionIesimaDelRadanner){
+            case 0:
+                hayMuro=radar.get(0)==1 && radar.get(1)==1 && radar.get(5)==1;
+                break;
+            case 1:
+                hayMuro=radar.get(1)==1 && radar.get(2)==1 && radar.get(3)==1;
+                break;
+            case 2: 
+                hayMuro=radar.get(3)==1 && radar.get(4)==1 && radar.get(8)==1;
+                break;
+            case 3:  
+                hayMuro=radar.get(5)==1 && radar.get(10)==1 && radar.get(15)==1;
+                break;
+            case 4:   
+                
+                break;
+            case 5:
+                hayMuro=radar.get(9)==1 && radar.get(14)==1 && radar.get(19)==1;
+                break;
+            case 6:
+                hayMuro=radar.get(15)==1 && radar.get(20)==1 && radar.get(21)==1;
+                break;
+            case 7:   
+                hayMuro=radar.get(21)==1 && radar.get(22)==1 && radar.get(23)==1;
+                break;
+            case 8:   
+                hayMuro=radar.get(19)==1 && radar.get(23)==1 && radar.get(24)==1;
+                break;
+            default:
+                System.out.println("["+ posicionIesimaDelRadanner
+                                      +"] No es una posición válida ");
+                hayMuro = false;
+                break;
+        }
+        
+        return hayMuro;
+    }
     /**
      * Neura indica la acción más prometedora. 
      * 
