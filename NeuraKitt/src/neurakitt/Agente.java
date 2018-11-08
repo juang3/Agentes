@@ -18,6 +18,11 @@ public class Agente extends SingleAgent {
     protected ACLMessage mensaje_respuesta;
     protected ACLMessage mensaje_salida;
     
+    //Control de iteraciones
+    int iteracionActual;
+    int iteracionesTope;
+    int antiguedad;
+    
     
     /**
      * 
@@ -37,6 +42,9 @@ public class Agente extends SingleAgent {
         mensaje_salida = new ACLMessage();
         
         System.out.println("Agente "+this.getAid().getLocalName()+" creado ");
+        
+        iteracionActual =0;
+        antiguedad =0;
     }
     
     
@@ -96,7 +104,7 @@ public class Agente extends SingleAgent {
         this.send(mensaje_salida);                      // Enviando el mensaje.
         
         System.out.println("["+mensaje_salida.getSender().getLocalName()
-                +"]\t envio mensaje a "
+                +"]\t mensaje enviado a "
                 + mensaje_salida.getReceiver().getLocalName()
                 + "\t\t contenido: "+ mensaje_salida.getContent());
     }
