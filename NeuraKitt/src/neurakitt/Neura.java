@@ -48,9 +48,7 @@ public class Neura extends Agente {
     ArrayList<Casilla> entornoRadanner;
     private String accion;
     private Casilla casillaActual; 
-    private final int MUCHAS_VECES = 6;
     private final boolean anilloExterior;
-//    private final int MUCHAS_VECES = Integer.MAX_VALUE;
 
 
     // Destinados al movimiento  
@@ -75,7 +73,7 @@ public class Neura extends Agente {
      * @Motivo  inclusión de la clase Casilla. Movidas TODAS las inicializaciones
      *  al constructor, en lugar de en la definición de los miembros.
      */
-    public Neura(AgentID aID, AgentID idKITT, boolean anilloExterior) throws Exception {
+    public Neura(AgentID aID, AgentID idKITT, boolean anilloExterior, int tope, int antiguedad) throws Exception {
         super(aID);
         
         scanner         = new ArrayList(TAM_ENTORNO);
@@ -136,6 +134,8 @@ public class Neura extends Agente {
             scanner.add(Float.POSITIVE_INFINITY); 
         
         this.anilloExterior = anilloExterior;
+        iteracionesTope = tope;
+        this.antiguedad = antiguedad;
     }
     
     
@@ -159,7 +159,7 @@ public class Neura extends Agente {
     public void execute(){   
         // while (miAccion != Accion.logout)
 //        System.out.println("[NEURA] Estoy en Execute ");
-        while (!"logout".equals(accion)){
+        while (accion != "logout"){
 //            System.out.println("Dentro del While ");
             // procesarMensaje();       GERMÁN
 //            System.out.println("Actualizaré los sensores ");
@@ -170,6 +170,11 @@ public class Neura extends Agente {
 //            getSensores();
             
             accion = getAccion();
+            
+            // Condición de parada selectiva
+            iteracionActual++;
+            if(iteracionActual == iteracionesTope){ accion = "logout";}
+            
             mensaje = new JsonObject();
             mensaje.add("accion", accion);
             enviarMensaje(idKITT);
@@ -431,23 +436,7 @@ public class Neura extends Agente {
         
         return new Casilla(x,y);
     }
-    
-    /**
-     * @author: German
-     * 
-     * Busca en el AarayList memoria si la casilla de coordenadas X,Y estaa en memoria
-     * de ser asii devuelve las veces que el coche ha asado por dicha casilla.
-     * @param x     Coordenada de abcisa
-     * @param y     Coordenada de ordenada
-     * @return Las veces que ha pasado por dicha casilla
-     */
-    private int buscarEnMemoria(int x, int y){
-        int contador = 1;
-        for(Casilla i : memoria)
-            if(i.X==x && i.Y==y)
-                return i.getContador();
-        return contador;
-    }
+
     
     /**
      * @author: German
@@ -458,19 +447,21 @@ public class Neura extends Agente {
     private void ponderadorDelEntorno(){
         
         int factorPonderador = -1;
-        
         for(int i=0 ; i< radanner.size(); i++){
             if(radanner.get(i)>0){
-                factorPonderador = comprobarCasillaExiste(
+                Casilla casilla = comprobarCasillaExiste(
                     casillaActual.X + entornoRadanner.get(i).X,
-                    casillaActual.Y + entornoRadanner.get(i).Y)
-                    .getContador();
+                    casillaActual.Y + entornoRadanner.get(i).Y);
+
+                factorPonderador = 
+                        casilla.getMemoria(iteracionActual, antiguedad);
                 
-                if(factorPonderador>1){
+                if(factorPonderador >1){
                     radanner.set(i, radanner.get(i)*factorPonderador);
                 }
                 
                 if(anilloExterior) ponderadorDelEntornoLejano(i, factorPonderador);
+                System.out.println(" Casilla "+ casilla.toString() + "\t Memoria: " + factorPonderador);
             }
         }
     }
