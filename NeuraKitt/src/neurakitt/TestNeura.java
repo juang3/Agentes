@@ -254,24 +254,7 @@ public class TestNeura {
         
         return new Casilla(x,y);
     }
-    
-    /**
-     * @author: German
-     * 
-     * Busca en el AarayList memoria si la casilla de coordenadas X,Y estaa en memoria
-     * de ser asii devuelve las veces que el coche ha asado por dicha casilla.
-     * @param x     Coordenada de abcisa
-     * @param y     Coordenada de ordenada
-     * @return Las veces que ha pasado por dicha casilla
-     */
-    private int BuscarEnMemoria(int x, int y){
-        int contador = 1;
-        for(Casilla i : memoria)
-            if(i.X==x && i.Y==y)
-                return i.getContador();
-        return contador;
-    }
-    
+      
     /**
      * @author: German
      * PonderadorEntorno determina las casillas por donde ha estado el coche
@@ -284,9 +267,10 @@ public class TestNeura {
         for(int i=0 ; i< TAMANIORADANNER; i++){
             if(radanner[i]>0){
                 contador++;
-                factorPonderador = BuscarEnMemoria(
+                factorPonderador = comprobarCasillaExiste(
                     casillaActual.X + entornoRadanner.get(i).X,
-                    casillaActual.Y + entornoRadanner.get(i).Y);
+                    casillaActual.Y + entornoRadanner.get(i).Y)
+                    .getContador();
                 if(factorPonderador>1){
                     radanner[i] = radanner[i]*factorPonderador;
                 }
