@@ -24,19 +24,24 @@ public class NeuraKitt {
         
         try {
             // Identificadores de los agentes
-            AgentID idKitt  = new AgentID("KITT18223");
-            AgentID idNeura = new AgentID("NEURA8223");
+            AgentID idKitt  = new AgentID("KITT19");
+            AgentID idNeura = new AgentID("NEURA9");
             
 //            AgentID idServidor = new AgentID("Girtab");
             String mapa = "map11";
             boolean anilloExterior = false;
-            
+            int tope = 5000;
+//            int tope = Integer.MAX_VALUE;
+//            int tiempoDeOlvido = 300;
+            int tiempoDeOlvido = Integer.MAX_VALUE;
+
+
             // Creando conexión con el servidor
             AgentsConnection.connect("isg2.ugr.es", 6000, "Girtab", "Geminis", "France", false);
             System.out.println("Conectado a isg2.ugr.es");
             
             
-            TestKitt test_kitt = new TestKitt(idKitt, idNeura, mapa, anilloExterior);
+            TestKitt test_kitt = new TestKitt(idKitt, idNeura, mapa, anilloExterior, tiempoDeOlvido);
             //System.out.println("Agente kitt creado");
             
             
@@ -44,7 +49,7 @@ public class NeuraKitt {
 
             //Kitt KITT = new Kitt(idKitt, idNeura, idServidor, mapa);
 //            System.out.println("Agente KITT creado");
-            Neura NEURA = new Neura(idNeura, idKitt, anilloExterior);
+            Neura NEURA = new Neura(idNeura, idKitt, anilloExterior, tope, tiempoDeOlvido);
 //            System.out.println("Agente NEURA creado");
             
             // Comenzar actividad.
