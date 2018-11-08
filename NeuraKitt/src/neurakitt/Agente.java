@@ -22,8 +22,7 @@ public class Agente extends SingleAgent {
     int iteracionActual;
     int iteracionesTope;
     int antiguedad;
-    
-    
+        
     /**
      * 
      * @author Alvaro
@@ -43,8 +42,10 @@ public class Agente extends SingleAgent {
         
         System.out.println("Agente "+this.getAid().getLocalName()+" creado ");
         
+        iteracionesTope = 0;
         iteracionActual =0;
         antiguedad =0;
+        
     }
     
     
@@ -58,6 +59,10 @@ public class Agente extends SingleAgent {
     
     
     /**
+     * recibirMensaje encapsula la rutina de drecibir y dar formato al contenido
+     * guardándolo en la variable mensaje.
+     * también muestra por pantalla información relevante para el seguimiento 
+     * de la comunicación entre los agentes.
      * @author: Germán, Alvaro
      * @return Devuelve éxito o no si se ha realizado corectamente 
      * 
@@ -85,7 +90,11 @@ public class Agente extends SingleAgent {
     
     
     /**
-     * Crea un mensaje y se lo envía al destinatario que recibe como parámetro
+     * enviarMensaje encapsula la rutina de dar formato a la variable 
+     * mensaje_salida con el contenido de "mensaje",
+     * añadir el remitente y el destinatario
+     * también muestra por pantalla información relevante para el seguimiento 
+     * de la comunicación entre los agentes.
      * 
      * @author: Germán, Alvaro
      * @param destinatario 
