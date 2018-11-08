@@ -21,13 +21,24 @@ package neurakitt;
  * un objeto del tipo casilla, previa comprobación de que esa casilla no haya
  * sido aún registrada en la memoria.
  * 
- * @author Alejandro
+ * @author Alejandro, Germán
  * @FechaModificacion 03/11/2018
+ * 
+ * Se han añadido los atributos:
+ *  contadorDeActivacion:  Actualiza a la iteración más reciente en la que 
+ *                         el agente pasó por la casilla.
+ *  memoria:               Almacena las veces que el agente ha pasado por la 
+ *                         casilla y trascurrido un número concreto de 
+ *                         iteraciones olvida la información.
+ *
+ * @FechaModificación 08/11/2018
  */
 public class Casilla {
     public final int X;
     public final int Y;
     private      int contador;
+    private      int contadorDeActivacion;
+    private      int memoria;
     
 
     /**
@@ -46,6 +57,9 @@ public class Casilla {
         X = coord_X;
         Y = coord_Y;
         contador = 0;
+        
+        contadorDeActivacion = 0;
+        memoria = 0;
     }
     
     
@@ -58,11 +72,33 @@ public class Casilla {
     
     
     /**
-     * 
+     * @author Alejandro
      * @return contador de la casilla.
      */
     public int getContador() {
         return contador;
+    }
+    
+   /**
+     * getMemoria Almacena las veces que el agente ha pasado por la casilla.
+     * además si trascurrido un tiempo (transirridas ciertas iteraciones)
+     * no se vuelve a pasar por ella, se pierde dicha información.
+     * @author Alejandro, German
+     * 
+     * @param pasosAndados
+     * @param olvidarTrasKPasos
+     * @return contador de la casilla.
+     */
+    public int getMemoria(int pasosAndados, int olvidarTrasKPasos) {
+        
+        if(contador == 0 || pasosAndados - contadorDeActivacion > olvidarTrasKPasos){
+           memoria = 0;
+        }
+        else
+            memoria++;
+        
+        contadorDeActivacion = pasosAndados;       
+        return memoria;
     }
     
     
