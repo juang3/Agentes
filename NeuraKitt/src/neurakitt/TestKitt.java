@@ -27,7 +27,7 @@ public class TestKitt extends Agente {
     private String clave ;
     private float bateria ;
     private String accion;
-    private int iteraciones ;
+//    private int iteraciones ;
     private final String anilloExterior;
     
     
@@ -36,7 +36,7 @@ public class TestKitt extends Agente {
      * @param aid
      * @throws Exception 
      */
-    public TestKitt(AgentID aid, AgentID idNeura, String mapa, boolean anilloExterior ) throws Exception {
+    public TestKitt(AgentID aid, AgentID idNeura, String mapa, boolean anilloExterior, int tiempoDeOlvido ) throws Exception {
         super(aid);
         idServidor = new AgentID("Girtab");
         nombreNeura = idNeura.getLocalName();
@@ -44,7 +44,7 @@ public class TestKitt extends Agente {
         accion = "";
         
         // Variables de control
-        iteraciones = 0 ;
+        antiguedad = tiempoDeOlvido;
         if(anilloExterior)
             this.anilloExterior = "_anillo_exterior_";
         else
@@ -64,6 +64,8 @@ public class TestKitt extends Agente {
         /* Escuchamos a neura para recibir la acción a realizar */
 
         while (!"logout".equals(accion)){
+            iteracionActual++;
+            System.out.println("\n Iteracion: "+ iteracionActual +"\n");
             
             
             // Evita el interbloqueo al recibir mensajes de distintos agentes con distintas claves.
@@ -97,8 +99,7 @@ public class TestKitt extends Agente {
              * Kitt decide si realizar la acción o realizar refuel.
              */
             
-//            if("logout".equals(accion)  || iteraciones > 1200){
-              if("logout".equals(accion)){
+            if("logout".equals(accion)){
 //                System.out.println("[KITT] Neura ha detectado que hemos llegado al destino ");
                 accion = "logout";
                 // break;
@@ -109,7 +110,7 @@ public class TestKitt extends Agente {
 //                System.out.println("[KITT] Se decide hacer refuel (nv. de bateria: "+ bateria +")");
             }
             /* Lo último es realizar la acción que Neura propone */
-            else {                    
+            else {
 //                System.out.println("[KITT] Se va a realizar la acción que Neura propone: "+ accion);
             }
             
@@ -150,9 +151,6 @@ public class TestKitt extends Agente {
             else{
                 System.out.println("Respuesta desconocida: "+ mensaje.toString());
             }
-            
-            iteraciones++;
-            System.out.println("\n Iteracion: "+ iteraciones +"\n");
         }
         
         /** 
@@ -166,7 +164,7 @@ public class TestKitt extends Agente {
          *  en este momento ya no tiene interés saberlo.
          *  Por tanto se ignora el mensaje para obtener la traza.
          */
-        System.out.println(" Ha iterado: "+ iteraciones + " veces. ");
+        System.out.println(" Ha iterado: "+ iteracionActual + " veces. ");
         recibirMensaje();
         getTraza(true);
 
@@ -249,10 +247,20 @@ public class TestKitt extends Agente {
             if(exito){
                 /* Recibimos la respuesta del servidor */
                 recibirMensaje();
-                nombre_fichero= "../" + mapa + this.anilloExterior + iteraciones + ".png";
+                nombre_fichero= "../" 
+                        + antiguedad
+                        + "__"
+                        + mapa 
+                        + this.anilloExterior 
+                        + iteracionActual + ".png";
             }
             else
-                nombre_fichero= "../Error_traza_anterior_" + mapa + ".png";
+                nombre_fichero= "../" 
+                        + antiguedad
+                        + "__"
+                        +"Error_traza_anterior_"
+                        + mapa 
+                        + iteracionActual + ".png";
             
 //            System.out.println("Mensaje recibido, del servidor, tras el logout: " + mensaje.toString());
             
