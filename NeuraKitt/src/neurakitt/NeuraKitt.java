@@ -16,16 +16,16 @@ public class NeuraKitt {
      * @param args the command line arguments
      * 
      * @author Alejandro
-     * @FechaModificacion 01/11/2018
-     * @Motivo añadida traza en caso de excepción
+     * @custom.FechaModificacion 01/11/2018
+     * @custom.Motivo añadida traza en caso de excepción
      */
     public static void main(String[] args) {
         Logger.global.setLevel(Level.OFF);
         
         try {
             // Identificadores de los agentes
-            AgentID idKITT  = new AgentID("KITT_B");
-            AgentID idNEURA = new AgentID("NEURA_B");
+            AgentID idKITT  = new AgentID("KITT");
+            AgentID idNEURA = new AgentID("NEURA");
             
             // Mapa a explorar
             String mapa = "map1";
@@ -36,9 +36,14 @@ public class NeuraKitt {
             System.out.println("Conectado a isg2.ugr.es");
             
             
-            Kitt KITT   = new Kitt(idKITT, idNEURA.getLocalName(), mapa);
+            boolean anillo_exterior = true;
+            int tope = 5000;
+            int tiempo_olvido = Integer.MAX_VALUE;
+            
+            Kitt KITT   = new Kitt(idKITT, idNEURA.getLocalName(), mapa,
+                                    anillo_exterior, tiempo_olvido);
             System.out.println("Agente KITT creado");
-            Neura NEURA = new Neura(idNEURA, idKITT);
+            Neura NEURA = new Neura(idNEURA, idKITT, anillo_exterior, tope, tiempo_olvido);
             System.out.println("Agente NEURA creado");
             
             // Comenzar actividad.

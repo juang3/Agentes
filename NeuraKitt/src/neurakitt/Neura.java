@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * 
  * @author Alejandro
  * @FechaModificación: 01/11/2018
- * @Motivo: java permite el carácter Ñ sin problema
+ * @custom.Motivo: java permite el carácter Ñ sin problema
  */
 public class Neura extends Agente {
     /**
@@ -20,14 +20,14 @@ public class Neura extends Agente {
      * 
      * @author Alejandro
      * @FechaModificación 01/11/2018
-     * @Motivo variables final. Cambio los atributos a privados ya que son
+     * @custom.Motivo variables final. Cambio los atributos a privados ya que son
      * propios del agente. Realizar el acceso mediante métodos get, si procede.
      * 
      * He creado un ENUM con las posibles acciones del agente en lugar de 
      * almacenarlas en un vector.
      * 
      * @FechaModificación 03/11/2018
-     * @Motivo inclusión de la nueva clase Casilla para la gestión de la memoria
+     * @custom.Motivo inclusión de la nueva clase Casilla para la gestión de la memoria
      * del agente, que sustituye a la matriz GPS[ int [3] ].
      */
     
@@ -41,41 +41,49 @@ public class Neura extends Agente {
     private ArrayList<Float>    radanner;
     // Destinados a memoria    
     private ArrayList<Casilla>  memoria;
+    private Casilla             pos_actual;
     // Destinados al movimiento  
-    /**************************************************************************/
-    // private Accion miAccion;                 A USAR MÁS TARDE 
-    /**************************************************************************/
     private ArrayList<String>   movimientos; 
-    private String accion;
+    private String              accion;
+    // Destinados a la toma de decisión
+    private ArrayList<Casilla>  alrededores;
     // Identificador del agente KITT
-    private final AgentID idKITT;    
-    
+    private final AgentID       idKITT;
+    // Destinado a saber qué
+    private final boolean anilloExterior;
     
     /**
      * CONSTRUCTOR
      * 
-     * @author  Alvaro, Germán
-     * @param   aID       identificador de Neura
-     * @param   idKITT    identificador de receptor de los mensajes de Neura
+     * @author  Alvaro, Germán, Alejandro
+     * @param   aID         identificador de Neura
+     * @param   idKITT      identificador de receptor de los mensajes de Neura
+     * @param   ext         Germán sabrá
+     * @param   tope        Germán sabrá
+     * @param   antiguedad  Germán sabrá
      * @throws  Exception 
      * 
      * 
      * @author  Alejandro
      * @FechaModificación 31/11/2018
-     * @Motivo  inclusión de la clase Casilla. Movidas TODAS las inicializaciones
+     * @custom.Motivo  inclusión de la clase Casilla. Movidas TODAS las inicializaciones
      *  al constructor, en lugar de en la definición de los miembros.
      */
-    public Neura(AgentID aID, AgentID idKITT) throws Exception {
+    public Neura(AgentID aID, AgentID idKITT, boolean ext, int tope, int antiguedad) 
+            throws Exception {
         super(aID);
         
         scanner         = new ArrayList(TAM_ENTORNO);
         radar           = new ArrayList(TAM_ENTORNO);
         radanner        = new ArrayList(TAM_RADANNER);
         memoria         = new ArrayList();
-        movimientos     = new ArrayList(9);
+        movimientos     = new ArrayList(TAM_RADANNER);
         accion          = "";
         this.idKITT     = idKITT;
-        
+        pos_actual      = new Casilla(0,0);
+        anilloExterior  = ext;
+        iteracionesTope = tope;
+        this.antiguedad = antiguedad;
         
         movimientos.add("moveNW");
         movimientos.add("moveN");
@@ -87,6 +95,16 @@ public class Neura extends Agente {
         movimientos.add("moveS");
         movimientos.add("moveSE");
         
+        alrededores = new ArrayList(TAM_RADANNER);
+        alrededores.add(new Casilla(-1,-1));                // NW
+        alrededores.add(new Casilla( 0,-1));                // W
+        alrededores.add(new Casilla( 1,-1));                // NE
+        alrededores.add(new Casilla(-1, 0));                // W
+        alrededores.add(new Casilla( 0, 0));                // KITT
+        alrededores.add(new Casilla( 1, 0));                // W
+        alrededores.add(new Casilla(-1, 1));                // SW
+        alrededores.add(new Casilla( 0, 1));                // S
+        alrededores.add(new Casilla( 1, 1));                // SE
         
         for(int i=0; i<TAM_RADANNER; i++)
             radanner.add(Float.POSITIVE_INFINITY);
@@ -118,13 +136,19 @@ public class Neura extends Agente {
     public void execute(){   
         while (accion != "logout"){
             actualizarSensores();           // Recibe los mensajes y los procesa
-            procesarInformacion();
-            getSensores();          /* Comprobar estado de los sensores */
+            procesarInformacion();          
+            getSensores();                  /* Comprobar estado de los sensores */
+            
+            iteracionActual++;
+            if(iteracionActual == iteracionesTope)
+                accion = "logout";
+            else
+                accion = getAccion();
 
-            accion = getAccion();
             mensaje = new JsonObject();
             mensaje.add("accion", accion);
-            System.out.println("[NEURA] Accion a realizar: " + accion);
+            if(DEBUG)
+                System.out.println("[NEURA] Accion a realizar: " + accion);
             enviarMensaje(this.idKITT);
         }
     }
@@ -180,7 +204,7 @@ public class Neura extends Agente {
      * 
      * @author Alejandro
      * @FechaModificación 01/11/2018
-     * @Motivo Nombre más significativo. Cambio de ProcesarRadarYEscanner() a
+     * @custom.Motivo Nombre más significativo. Cambio de ProcesarRadarYEscanner() a
      * procesarInformacion()
      */
     private void procesarInformacion(){
@@ -213,7 +237,7 @@ public class Neura extends Agente {
     * 
     * @author Alejandro
     * @FechaModificación 01/11/2018
-    * @Motivo Nombre más significativo. Cambio Radanner() por actualizarRadanner()
+    * @custom.Motivo Nombre más significativo. Cambio Radanner() por actualizarRadanner()
     *  Cambiada accesibilidad a privada.
     */
     private void actualizarRadanner() {
@@ -226,6 +250,8 @@ public class Neura extends Agente {
         radanner.set(6, scanner.get(16));
         radanner.set(7, scanner.get(17));
         radanner.set(8, scanner.get(18));
+        
+        procesarEntorno();
     }
    
     
@@ -245,14 +271,14 @@ public class Neura extends Agente {
      * 
      * @author Alejandro
      * @FechaModificación 01/11/2018
-     * @Motivo Las funciones y métodos deben ser siempre verbos ya que tal y como
+     * @custom.Motivo Las funciones y métodos deben ser siempre verbos ya que tal y como
      * está ahora no sé lo que hace visto desde otra clase a no ser que mire el código.
      * Con "Decision" no sé si devuelve la decision, la toma, si es una variabe o qué.
      * 
      * - Cambio el nombre del método a decidirAccion().
      * - Cambio visibilidad a privada.
      * 
-     * @FechaModificacion 03/11/2018
+     * @custom.FechaModificacion 03/11/2018
      * - Cambiado el algoritmo de búsqueda por uno más simple y que no rompa 
      *   el bucle con varios returns.
      * 
@@ -291,7 +317,7 @@ public class Neura extends Agente {
      * 
      * @author Germán, Alejandro
      * 
-     * @FechaModificacion 03/11/2018
+     * @custom.FechaModificacion 03/11/2018
      * 
      */
     private void actualizarSensores(){
@@ -300,8 +326,6 @@ public class Neura extends Agente {
         for(int j=0; j<NUM_SENSORES; j++){
             recibirMensaje();
             
-            System.out.println("[NEURA] Mensaje recibido " + mensaje.toString());
-
             if(mensaje.toString().contains("scanner")) {
                 datos = mensaje.get("scanner").asArray();
                 for(int i=0; i<datos.size(); i++)
@@ -316,9 +340,9 @@ public class Neura extends Agente {
                 int x = mensaje.get("gps").asObject().get("x").asInt(); 
                 int y = mensaje.get("gps").asObject().get("y").asInt();
 
-                Casilla actual = comprobarCasillaExiste(x,y);
-                actual.aumentarContador();
-                memoria.add(actual);
+                pos_actual = comprobarCasillaExiste(x,y);
+                pos_actual.aumentarContador();
+                memoria.add(pos_actual);
             }
             else {
                 System.out.println("[ERROR] " + mensaje.asString());
@@ -352,6 +376,150 @@ public class Neura extends Agente {
     }
     
      
+    
+    /**
+     * @author: German
+     * AnalizadorEntorno determina las casillas por donde ha estado el coche
+     * haciendo uso de la memoria, con ello pondera la percepcion del radaner
+     * para hacer dicha opcion menos prometedora.
+     * 
+     * @author Alejandro
+     * @custom.FechaModificacion 08/11/2018
+     * @custom.Motivo
+     *      - Cambiado nombre por uno más significativo
+     *          (ponderadorDelEntorno --> procesarEntorno)
+     *      - Eliminado método redundante para acceder al contador de una casilla.
+     *          (el método comprobarCasillaExiste ya implementa esa funcionalidad)
+     *      - Modificado el código del método actual para ajustarlo al cambio del
+     *        punto anterior.
+     */
+    private void procesarEntorno(){
+        
+        int multiplicador = -1;
+        
+        for(int i=0; i<radanner.size(); i++){
+           if(radanner.get(i) > 0) {
+                multiplicador =  comprobarCasillaExiste(
+                    pos_actual.X + alrededores.get(i).X,
+                    pos_actual.Y + alrededores.get(i).Y
+                ).getMemoria(iteracionActual, antiguedad);
+               
+                if(multiplicador > 1)
+                    radanner.set(i, radanner.get(i)*multiplicador);
+               
+                if(anilloExterior)
+                    procesarEntornoLejano(i, multiplicador);
+           }
+        }
+    }
+    
+    /**
+     * 
+     * @Reflexión:
+     * @Pregunta: ¿En qué podría servir saber la información de las celdas 
+     * que no son adyacentes al agente?
+     * 
+     * @Respuesta: Podrián servir para evitar aproximarnos a una pared
+     * pues necesariamente habrá que cambiar el sentido en el proximo movimiento
+     * 
+     * @Pregunta: ¿Sería mejor cambiar el sentido antes de acercarnos a la pared
+     * Si sabemos que más allá de esta no podemos pasar?
+     * 
+     * @Respuesta: Si, 
+     * se podía incluir una ponderacíon para ver esa decisión menos atractiva.
+     * -Def.- 
+     *      Defino muro sin huecos a la consecución de al menos tres obstáculos.
+     *      Defino muro con huecos a la consecución de dos obstáculos.
+     * 
+     *  Ejemplo con radar:
+     *      1   1   1   0   0
+     *      1   0   0   0   1
+     *      0   1   0   0   1
+     *      0   0   0   0   1
+     *      0   0   0   1   0
+     * 
+     *  Se puede ver que moveNW no parece buena acción  (Muro sin hueco 0,1,5)
+     *  Se puede ver que moveE  no parece buena acción  (Muro sin hueco 9,14,19)
+     *  Se puede ver que moveS  si parece buena acción  (No hay muro)
+     *  Se puede ver que moveSE si parece buena acción  (Hay muro con hueco)
+     *  Se puede ver que moveN  si parece buena acción  (Hay muro con hueco)
+     *  Se puede ver que moveNE si parece buena acción  (No hay muro)
+     *  Se puede ver que moveSW si parece buena acción  (No hay muro)
+     */
+     
+    /**
+     * Pondera una posición concreta del radanner en función de si hay muro 
+     * frente a dicha posición.
+     * 
+     * @author; Germán
+     * @param posicionIesimaDelRadanner
+     * 
+     */
+    private void procesarEntornoLejano(int pos_radanner, int contador){
+        int i = pos_radanner;
+        int multiplicador = contador;
+        
+        if(hayMuro(i))
+            radanner.set(i, multiplicador*radanner.get(i));
+     }
+    
+    /**
+     * @author: Germán
+     * Muro mira si hay o no obtáculo en frente de la casilla adyacente al agente
+     * @param posicionIesimaDelRadanner
+     * @return Devuelve si hay o no muro enfrente de la casilla adyacente al agente 
+     * 
+     * @Nota:
+     *  Hay muro al NOeste si las casillas  0,  1,  5 del radar tienen un 1.
+     *  Hay muro al Norte  si las casillas  1,  2,  3 del radar tienen un 1.
+     *  Hay muro al NEste  si las casillas  3,  4,  9 del radar tienen un 1.
+     *  Hay muro al Este   si las casillas  9, 14, 19 del radar tienen un 1.
+     *  Hay muro al SEste  si las casillas 19, 23, 24 del radar tienen un 1.
+     *  Hay muro al Sur    si las casillas 21, 22, 23 del radar tienen un 1.
+     *  Hay muro al SOeste si las casillas 15, 20, 21 del radar tienen un 1.
+     *  Hay muro al Oeste  si las casillas  5, 10, 15 del radar tienen un 1.
+     * 
+     */
+    private boolean hayMuro(int posicion){
+        boolean muro = false;
+        
+        switch(posicion){
+            case 0:
+                muro=radar.get(0)==1 && radar.get(1)==1 && radar.get(5)==1;
+                break;
+            case 1:
+                muro=radar.get(1)==1 && radar.get(2)==1 && radar.get(3)==1;
+                break;
+            case 2: 
+                muro=radar.get(3)==1 && radar.get(4)==1 && radar.get(8)==1;
+                break;
+            case 3:  
+                muro=radar.get(5)==1 && radar.get(10)==1 && radar.get(15)==1;
+                break;
+            case 4:   
+                
+                break;
+            case 5:
+                muro=radar.get(9)==1 && radar.get(14)==1 && radar.get(19)==1;
+                break;
+            case 6:
+                muro=radar.get(15)==1 && radar.get(20)==1 && radar.get(21)==1;
+                break;
+            case 7:   
+                muro=radar.get(21)==1 && radar.get(22)==1 && radar.get(23)==1;
+                break;
+            case 8:   
+                muro=radar.get(19)==1 && radar.get(23)==1 && radar.get(24)==1;
+                break;
+            default:
+                System.out.println("["+posicion+"] No es una posición válida ");
+                muro = false;
+                break;
+        }
+        return muro;
+    }
+    
+    
     /**
      * Neura indica la acción más prometedora. 
      * 
@@ -363,7 +531,7 @@ public class Neura extends Agente {
      * 
      * @author Alejandro
      * @FechaModificación 01/11/2018
-     * @Motivo Las funciones y métodos deben ser siempre verbos ya que tal y como
+     * @custom.Motivo Las funciones y métodos deben ser siempre verbos ya que tal y como
      * está ahora no sé lo que hace visto desde otra clase a no ser que mire el código.
      * Con "Acción" no sé si devuelve la acción, la toma, si es una variabe o qué.
      * Cambio el nombre del método a getAccion()
@@ -383,10 +551,10 @@ public class Neura extends Agente {
      * 
      * @author Alejandro
      * @FechaModificación 01/11/2018
-     * @Motivo  Cambio PrintSensores() por getSensores()
+     * @custom.Motivo  Cambio PrintSensores() por getSensores()
      * 
-     * @FechaModificacion 03/11/2018
-     * @Motivo reemplazo de bucles for por funciones propias del lenguaje
+     * @custom.FechaModificacion 03/11/2018
+     * @custom.Motivo reemplazo de bucles for por funciones propias del lenguaje
      */
     public void getSensores(){
         System.out.println("[NEURA] Radar: "            + radar.toString());

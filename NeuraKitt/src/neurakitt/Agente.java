@@ -11,8 +11,8 @@ import es.upv.dsic.gti_ia.core.SingleAgent;
  * @author Alvaro
  * 
  * @author Alejandro
- * @FechaModificacion 05/11/2018
- * @Motivo cambiada privacidad de mensaje_respuesta y mensaje_salido a privada
+ * @custom.FechaModificacion 05/11/2018
+ * @custom.Motivo cambiada privacidad de mensaje_respuesta y mensaje_salido a privada
  */
 public class Agente extends SingleAgent {
     // Evita creación de objetos Json durante la ejecución del agente 
@@ -22,6 +22,13 @@ public class Agente extends SingleAgent {
     private ACLMessage mensaje_respuesta;
     private ACLMessage mensaje_salida;
     
+    protected final boolean DEBUG = true;
+    
+    
+    // Control de iteraciones
+    protected int iteracionActual;
+    protected int iteracionesTope;
+    protected int antiguedad;
     
     /**
      * 
@@ -30,14 +37,21 @@ public class Agente extends SingleAgent {
      * @throws Exception
      * 
      * @author Alejandro
-     * @FechaModificacion 04/11/2018
-     * @Motivo añadida inicialización de variables
+     * @custom.FechaModificacion 04/11/2018
+     * @custom.Motivo añadida inicialización de variables
      */
     public Agente(AgentID aID) throws Exception {
         super(aID);
         
         mensaje = new JsonObject();
         mensaje_respuesta = mensaje_salida = new ACLMessage();
+        
+        iteracionesTope = 0;
+        iteracionActual = 0;
+        antiguedad      = 0;
+        
+        if(DEBUG)
+            System.out.println("Agente "+this.getAid().getLocalName()+" creado ");
     }
     
     
@@ -55,8 +69,8 @@ public class Agente extends SingleAgent {
      * @return Devuelve éxito o no si se ha realizado corectamente 
      * 
      * @author Alejandro
-     * @FechaModificacion 01/11/2018
-     * @Motivo Las funciones y métodos deben ser siempre verbos. Cambio 
+     * @custom.FechaModificacion 01/11/2018
+     * @custom.Motivo Las funciones y métodos deben ser siempre verbos. Cambio 
      * ReciboYDecodificoMensaje() por recibirMensaje()
      */
     protected boolean recibirMensaje(){
@@ -69,6 +83,11 @@ public class Agente extends SingleAgent {
         }
         
         mensaje = Json.parse(mensaje_respuesta.getContent()).asObject();
+        
+        if(DEBUG)
+            System.out.println("["+this.getAid().getLocalName()+"]"
+                                + "Mensaje recibido " + mensaje.toString());
+        
         return true;
     }
     
@@ -80,8 +99,8 @@ public class Agente extends SingleAgent {
      * @param destinatario 
      * 
      * @author Alejandro
-     * @FechaModificacion 01/11/2018
-     * @Motivo Las funciones y métodos deben ser siempre verbos. Cambio 
+     * @custom.FechaModificacion 01/11/2018
+     * @custom.Motivo Las funciones y métodos deben ser siempre verbos. Cambio 
      * DecodificoYEnvioMensaje() por enviarMensaje(). Cambiado valor de retorno 
      * a void
      */
@@ -90,6 +109,10 @@ public class Agente extends SingleAgent {
         mensaje_salida.setSender(this.getAid());        // Emisor (objeto que invoca)
         mensaje_salida.setReceiver(destinatario);       // Receptor (obejto dado como parámetro)
         mensaje_salida.setContent(mensaje.toString());  // Contenido del mensaje
-        this.send(mensaje_salida);                      // Enviando el mensaje.
+        this.send(mensaje_salida);  
+    
+        if(DEBUG)
+           System.out.println("["+this.getAid().getLocalName() + "]"
+                +"] Mensaje enviado " + mensaje.toString());
     }
 }

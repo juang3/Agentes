@@ -5,3 +5,4 @@
 # en el classpath de cada usuario.
 /nbproject/private/*
 /NeuraKitt/build/
+/NeuraKitt/dist/

@@ -13,8 +13,8 @@ import java.util.logging.Logger;
  * @author Alvaro
  * 
  * @author Alejandro
- * @FechaModificacion 01/11/2018
- * @Motivo eliminados imports inncesarios, corregidos algunos comentarios y 
+ * @custom.FechaModificacion 01/11/2018
+ * @custom.Motivo eliminados imports inncesarios, corregidos algunos comentarios y 
  *  añadida la HU 4
  */
 public class Kitt extends Agente {
@@ -22,13 +22,13 @@ public class Kitt extends Agente {
     /**
      * Atributos de KITT
      */
-    private final AgentID idServidor;
-    private final String NEURA;
-    private String clave;
-    private float bateria;
-    private String mapa;
-    private String dir_traza;
-    private String accion;
+    private final AgentID   idServidor;
+    private final String    NEURA;
+    private String          clave;
+    private float           bateria;
+    private String          mapa;
+    private String          accion;
+    private final String    anilloExterior;         // A saber qué es...
     
         
     /**
@@ -39,49 +39,31 @@ public class Kitt extends Agente {
      * @throws Exception 
      * 
      * @author Alejandro
-     * @FechaModificacion 04/11/2018
-     * @Motivo inicialización de variables en constructor en lugar de en la 
+     * @custom.FechaModificacion 04/11/2018
+     * @custom.Motivo inicialización de variables en constructor en lugar de en la 
      * definición.
      * 
      * @author Germán
-     * @FechaModificacion 05/11/2018
-     * @Motivo parametrización del constructor con el nombre del agente NUERA 
+     * @custom.FechaModificacion 05/11/2018
+     * @custom.Motivo parametrización del constructor con el nombre del agente NUERA 
      *  y el nombre del mapa a explorar.
      */
-    public Kitt(AgentID aid, String neura, String mapa) throws Exception {
+    public Kitt(AgentID aid, String neura, String mapa, boolean ext, int t) 
+            throws Exception {
         super(aid);
         
-        idServidor = new AgentID("Girtab");
-        clave = "";
-        bateria = 0;
-        this.mapa = mapa;
-        this.NEURA = neura;
-        dir_traza = "./trazas/";
-        accion = "";
-    }
-    
-    
-    
-    private void test() {
-        for(int i=0; i<15; i++){
-            mensaje = new JsonObject();
-            mensaje.add("command", "moveSW");
-            mensaje.add("key", clave);
-            enviarMensaje(idServidor);
-            
-            recibirMensaje();
-            System.out.println("Respuesta: " + mensaje.toString());
-            
-            
-            if(mensaje.get("result").asString().contains("OK")) {
-                recibirMensaje();
-                System.out.println("Batería: " + mensaje.get("battery").asFloat());
-                bateria = mensaje.get("battery").asFloat() ;
-            }
-            else {
-                System.out.println("");
-            }
-        }
+        idServidor  = new AgentID("Girtab");
+        clave       = "";
+        bateria     = 0;
+        this.mapa   = mapa;
+        this.NEURA  = neura;
+        accion      = "";
+        antiguedad  = t;
+        
+        if(ext)
+            anilloExterior = "_anillo_exterior_";
+        else
+            anilloExterior = "_";
     }
     
     
@@ -111,30 +93,38 @@ public class Kitt extends Agente {
      */
     public void execute() {
         login();
-        System.out.println("[KITT] Iniciada sesión.");
+        if(DEBUG)
+            System.out.println("[KITT] Iniciada sesión.");
         
         while(!accion.equals("logout")) {
-            recibirMensaje();
-            System.out.println("[KITT] Batería: " + mensaje.get("battery").asFloat());
-            bateria = mensaje.get("battery").asFloat() ;
+            iteracionActual++;
             
-            recibirMensaje();
-            System.out.println("[KITT] Mensaje recibido: " + mensaje.toString());
-            if(bateria > 1f)
-                accion = mensaje.get("accion").asString();
-            else
+            for(int i=0; i< 2; i++) {
+                recibirMensaje();
+                
+                if(mensaje.toString().contains("battery"))
+                    bateria = mensaje.get("battery").asFloat();
+                else if(mensaje.toString().contains("accion"))
+                    accion = mensaje.get("accion").asString();
+                else if(DEBUG)
+                    System.out.println("Mensaje inesperado: "+ mensaje.toString());
+            }
+            
+            if(bateria == 1f)
                 accion = "refuel";
             
             mensaje = new JsonObject();
             mensaje.add("command", accion);
             mensaje.add("key", clave);
             enviarMensaje(idServidor);
-            System.out.println("[KITT] Mensaje enviado: " + mensaje.toString());
+            if (DEBUG)
+                System.out.println("[KITT] Mensaje enviado: " + mensaje.toString());
             recibirMensaje();
         }
         
-        logout();
-        System.out.println("[KITT] Sesión cerrada.");
+        procesarTraza();
+        if(DEBUG)
+            System.out.println("[KITT] Sesión cerrada.");
     }
     
     
@@ -142,8 +132,8 @@ public class Kitt extends Agente {
      * @author Alvaro
      * 
      * @author Alejandro
-     * @FechaModificacion 04/11/2018
-     * @Motivo manejo de conexiones anteriores mal acabadas. Migración del 
+     * @custom.FechaModificacion 04/11/2018
+     * @custom.Motivo manejo de conexiones anteriores mal acabadas. Migración del 
      *  almacenamiento de la clave de sesión desde el método execute() a aquí.
      *  Cambiado método a void
      */
@@ -156,11 +146,13 @@ public class Kitt extends Agente {
         mensaje.add("radar",    NEURA);
         mensaje.add("gps",      NEURA);        
          
-        System.out.println("[LOGIN] Enviado: " + mensaje.toString());
+        if(DEBUG)
+            System.out.println("[LOGIN] Enviado: " + mensaje.toString());
         enviarMensaje(idServidor);
                 
         recibirMensaje();
-        System.out.println("[LOGIN] Respuesta: " + mensaje.toString());
+        if(DEBUG)
+            System.out.println("[LOGIN] Respuesta: " + mensaje.toString());
 
         /**
          * En lugar de hacer logout y login para manejar sesiones anteriores mal
@@ -173,11 +165,13 @@ public class Kitt extends Agente {
         if (mensaje.toString().contains("trace")) {
             System.out.println("[WARNING] Traza en el login. Reiniciando...");
             recibirMensaje();
-            System.out.println("[LOGIN] Respuesta: " + mensaje.toString());
+            if(DEBUG)
+                System.out.println("[LOGIN] Respuesta: " + mensaje.toString());
         }
         
         clave = mensaje.get("result").asString();
-        System.out.println("[LOGIN] Clave: " + clave);
+        if(DEBUG)
+            System.out.println("[LOGIN] Clave: " + clave);
     }
     
     
@@ -185,45 +179,30 @@ public class Kitt extends Agente {
      * @author Alvaro
      * 
      * @author Alejandro
-     * @FechaModificacion 04/11/2018
-     * @Motivo corregido error en la recepción de la traza
+     * @custom.FechaModificacion 04/11/2018
+     * @custom.Motivo corregido error en la recepción de la traza
      */
-    private void logout() {
-//        mensaje = new JsonObject();
-//        mensaje.add("command", "logout");
-//        mensaje.add("key", clave);
-//        
-//        System.out.println("[LOGOUT] Enviado: " + mensaje.toString());
-//        enviarMensaje(idServidor);
-
-        /* Recibimos la respuesta del servidor y si el resultado es OK guardamos 
-           la traza */
+    private void procesarTraza() {
+        String nombre_fichero = "./trazas/" + antiguedad + mapa + 
+                anilloExterior + iteracionActual + ".png";
         
         recibirMensaje();
-        System.out.println("[LOGOUT] Respuesta: " + mensaje.toString());
         
-        if (mensaje.get("result").asString().contains("OK")) {
-//            recibirMensaje();
-            recibirMensaje();
-            System.out.println("[LOGOUT] Traza: " + mensaje.toString());
-            
-            try {
-                JsonArray ja = mensaje.get("trace").asArray();
-                byte data[] = new byte [ja.size()];
-                
-                for(int i=0 ; i<data.length; i++)
-                    data[i] = (byte) ja.get(i).asInt();
-                
-                String ruta = dir_traza + mapa + ".png";
-                FileOutputStream fos = new FileOutputStream(ruta);
-                fos.write(data);
-                fos.close();
-                System.out.println("[LOGOUT] Traza Guardada");
+        try {
+            JsonArray ja = mensaje.get("trace").asArray();
+            byte data[] = new byte [ja.size()];
 
-            } catch (IOException ex) {
-                System.err.println("[LOGOUT] Error procesando traza");
-                Logger.getLogger(Kitt.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            for(int i=0 ; i<data.length; i++)
+                data[i] = (byte) ja.get(i).asInt();
+
+            FileOutputStream fos = new FileOutputStream(nombre_fichero);
+            fos.write(data);
+            fos.close();
+            System.out.println("[LOGOUT] Traza Guardada");
+
+        } catch (IOException ex) {
+            System.err.println("[LOGOUT] Error procesando traza");
+            Logger.getLogger(Kitt.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

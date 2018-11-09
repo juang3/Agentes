@@ -22,12 +22,26 @@ package neurakitt;
  * sido aún registrada en la memoria.
  * 
  * @author Alejandro
- * @FechaModificacion 03/11/2018
+ * @custom.FechaModificacion 03/11/2018
+ * 
+ * @author Germán
+ * @custom.FechaModificacion 08/11/2018
+ * @custom.Motivo
+ *  Se han añadido los atributos:
+ *
+ *      - contadorDeActivacion: almacena la última vez que el agente pasó por la
+ *                              casilla.
+ *
+ *      - memoria:              almacena las veces que el agente ha pasado por la 
+ *                              casilla y trascurrido un número concreto de 
+ *                              iteraciones olvida la información.
  */
 public class Casilla {
     public final int X;
     public final int Y;
     private      int contador;
+    private      int contadorDeActivacion;
+    private      int memoria;
     
 
     /**
@@ -50,6 +64,8 @@ public class Casilla {
     
     
     /**
+     * @author Alejandro
+     * 
      * Aumenta el contador de la casilla en una unidad.
      */
     public void aumentarContador() {
@@ -58,7 +74,7 @@ public class Casilla {
     
     
     /**
-     * 
+     * @author Alejandro
      * @return contador de la casilla.
      */
     public int getContador() {
@@ -66,6 +82,33 @@ public class Casilla {
     }
     
     
+     /**
+     * getMemoria devuelve las veces que el agente ha pasado por la casilla.
+     * Además si trascurrido un tiempo (transirridas ciertas iteraciones)
+     * no se vuelve a pasar por ella, se pierde dicha información.
+     * @author German
+     * 
+     * @param pasosAndados
+     * @param olvidarTrasKPasos
+     * @return contador de la casilla.
+     */
+    public int getMemoria(int pasosAndados, int olvidarTrasKPasos) {
+        
+        if(contador == 0 || pasosAndados - contadorDeActivacion > olvidarTrasKPasos){
+           memoria = 0;
+        }
+        else
+            memoria++;
+        
+        contadorDeActivacion = pasosAndados;       
+        return memoria;
+    }
+    
+    
+    /**
+     * @author Alejandro
+     * @return String
+     */
     @Override
     public String toString(){
         return "[X,Y,#] : " + X + "," + Y + "," + contador;
